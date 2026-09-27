@@ -19,6 +19,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- Повне ім'я класу з методом main для виконуваного jar. -->
         <main.class>ua.lpnu.kzp.Main</main.class>
+        <!-- Номер CI-збірки; у GitHub Actions передається через -Dbuild.number. -->
+        <build.number>local</build.number>
     </properties>
 
     <dependencies>
@@ -67,6 +69,8 @@
                                     <manifestEntries>
                                         <!-- Версію з pom.xml можна прочитати в програмі для режиму version. -->
                                         <Implementation-Version>${project.version}</Implementation-Version>
+                                        <!-- Номер збірки не є версією коду: один код може мати багато збірок. -->
+                                        <Build-Number>${build.number}</Build-Number>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>

@@ -1,0 +1,59 @@
+# Один workflow перевіряє однаковий commit на трьох операційних системах.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      # Падіння на одній ОС не скасовує перевірку на інших.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Отримуємо код commit або Pull Request.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Встановлюємо однаковий JDK 21 і кешуємо залежності Maven (~/.m2).
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # Номер запуску workflow потрапляє в маніфест jar і назву артефакта.
+      - name: Show CI build number
+        run: echo "CI build ${{ github.run_number }}"
+
+      # verify = компіляція → тести → пакування jar → SpotBugs.
+      - name: Verify on Unix
+        if: runner.os != 'Windows'
+        run: ./mvnw -B clean verify "-Dbuild.number=${{ github.run_number }}"
+
+      # На Windows використовується окремий cmd-скрипт Wrapper.
+      - name: Verify on Windows
+        if: runner.os == 'Windows'
+        run: .\mvnw.cmd -B clean verify "-Dbuild.number=${{ github.run_number }}"
+
+      # Перевіряємо, що зібраний jar справді запускається на цій ОС.
+      - name: Run JAR
+        shell: bash
+        run: java -jar target/lab01-*.jar
+
+      # Кожна ОС отримує власний артефакт, щоб результати не перезаписувалися.
+      # Шаблон lab01-*.jar не захоплює original-lab01-*.jar без залежностей.
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab01-${{ matrix.os }}-build-${{ github.run_number }}
+          path: target/lab01-*.jar
+          if-no-files-found: error
