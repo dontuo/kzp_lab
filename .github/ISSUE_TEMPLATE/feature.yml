@@ -1,0 +1,23 @@
+# Форма GitHub Issue перетворює вимогу на завдання з перевірюваним критерієм готовності.
+name: Feature
+description: Запланувати функціональну зміну
+title: "[feature] "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Опис
+      description: Що має з'явитися у програмі?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Критерії готовності
+      description: Як перевірити, що завдання виконано?
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true

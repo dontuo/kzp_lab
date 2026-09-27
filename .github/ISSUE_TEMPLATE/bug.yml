@@ -1,0 +1,35 @@
+# Дефект має бути відтворюваним, інакше його неможливо перевірити.
+name: Bug
+description: Повідомити про дефект
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Кроки відтворення
+      description: Команда запуску та вхідні дані, на яких проявляється дефект.
+      placeholder: |
+        1. Додати в data/input.csv рядок ...
+        2. Виконати java -jar target/lab01-1.0.0.jar
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Очікуваний результат
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Фактичний результат
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Середовище
+      description: ОС і версія Java (java -version).
+    validations:
+      required: false
