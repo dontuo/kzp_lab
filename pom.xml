@@ -34,6 +34,14 @@
     </dependencies>
 
     <build>
+        <resources>
+            <!-- Підставляє ${project.version} і ${build.number} у version.properties для режиму version. -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
             <!-- Компіляція; версію зафіксовано, щоб збірка була відтворюваною. -->
             <plugin>
