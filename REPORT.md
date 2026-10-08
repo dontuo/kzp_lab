@@ -106,13 +106,14 @@ args → Main.run → FileReport.readLines → для кожного рядка 
 
 ```text
 $ java -jar lab01-1.0.0.jar --version
-lab01 1.0.0 (build TODO: номер)
+lab01 1.0.0 (build 13)
 ```
 
 ## 6. GitHub Issues і Pull Request
 
 | GitHub Issue | Зміна | Pull Request |
 |---|---|---|
+| [#14](https://github.com/dontuo/kzp_lab/issues/14) Налаштування лабораторної роботи №1 (`infra`) | загальний план роботи, фінальне оформлення звіту | [#15](https://github.com/dontuo/kzp_lab/pull/15) |
 | [#1](https://github.com/dontuo/kzp_lab/issues/1) Налаштувати Maven-проєкт і Maven Wrapper (`infra`) | pom.xml, Wrapper, .gitignore, .gitattributes, .editorconfig, smoke-тест | [#2](https://github.com/dontuo/kzp_lab/pull/2) |
 | [#3](https://github.com/dontuo/kzp_lab/issues/3) Налаштування GitHub Actions (`infra`) | CI на трьох ОС, артефакт, шаблони Issues і PR, ролі ШІ | [#4](https://github.com/dontuo/kzp_lab/pull/4) |
 | [#5](https://github.com/dontuo/kzp_lab/issues/5) Аргументи командного рядка (`feature`) | `--help`, `--input`, `--output`, `--version`, `run(args)` | [#9](https://github.com/dontuo/kzp_lab/pull/9) |
@@ -203,9 +204,18 @@ BUILD SUCCESS
 
 CI:
 
-- успішний запуск: TODO: посилання на GitHub Actions
-- артефакт jar: TODO: посилання на артефакт
-- результати на трьох ОС: TODO: ubuntu-latest / windows-latest / macos-latest – success
+- успішний запуск CI № 13: https://github.com/dontuo/kzp_lab/actions/runs/37765446907
+- артефакти jar:
+  - [lab01-ubuntu-latest-build-13](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/artifacts/11544546287)
+  - [lab01-windows-latest-build-13](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/artifacts/11543782993)
+  - [lab01-macos-latest-build-13](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/artifacts/11543593462)
+- результати на трьох ОС (тести, SpotBugs, пакування, запуск jar):
+
+  | ОС | Результат |
+  |---|---|
+  | ubuntu-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/job/113271864779) |
+  | windows-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/job/113271864594) |
+  | macos-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/job/113271865218) |
 - Git-тег: `v1.0.0`
 
 ## 9. Документація
