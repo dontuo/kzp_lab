@@ -5,7 +5,12 @@
 - Тема: розгортання Java-проєкту та базова обробка даних.
 - Лабораторна робота № 1, варіант 1 – «Каталог книжок».
 - Операційна система: Gentoo Linux, OpenJDK 25 (код компілюється з `--release 21`).
-- Репозиторій: TODO: посилання на репозиторій
+- Репозиторій: https://github.com/dontuo/kzp_lab
+- Стан лабораторної роботи № 1: тег `v1.0.0` – https://github.com/dontuo/kzp_lab/tree/v1.0.0
+
+Усі лабораторні роботи наскрізного проєкту ведуться в одному репозиторії, бо
+кожна наступна робота розвиває код попередньої. Стан кожної здачі позначено
+Git-тегом (`v1.0.0` – ЛР № 1), тому назва репозиторію не містить номера роботи.
 
 ## 2. Мета роботи
 
@@ -101,21 +106,30 @@ args → Main.run → FileReport.readLines → для кожного рядка 
 
 ```text
 $ java -jar lab01-1.0.0.jar --version
-lab01 1.0.0 (build TODO: номер)
+lab01 1.0.0 (build 13)
 ```
 
 ## 6. GitHub Issues і Pull Request
 
 | GitHub Issue | Зміна | Pull Request |
 |---|---|---|
-| TODO: #1 Налаштування лабораторної роботи №1 | план роботи | TODO |
-| TODO: #N Налаштувати Maven-проєкт | pom.xml, Wrapper, smoke-тест | #2 |
-| TODO: #N Налаштувати GitHub Actions | CI на трьох ОС, шаблони, ролі ШІ | #4 |
-| TODO: #N Аргументи командного рядка | `--help`, `--input`, `--output`, `--version` | TODO |
-| TODO: #N Читання й перевірка записів | `BookParser`, `FileReport` | TODO |
-| TODO: #N Сформувати звіт | `CatalogSummary`, `ReportFormatter` | TODO |
-| TODO: #N bug: ... | TODO | TODO |
-| TODO: #N Документація | README, REPORT, javadoc | TODO |
+| [#14](https://github.com/dontuo/kzp_lab/issues/14) Налаштування лабораторної роботи №1 (`infra`) | загальний план роботи, фінальне оформлення звіту | [#15](https://github.com/dontuo/kzp_lab/pull/15) |
+| [#1](https://github.com/dontuo/kzp_lab/issues/1) Налаштувати Maven-проєкт і Maven Wrapper (`infra`) | pom.xml, Wrapper, .gitignore, .gitattributes, .editorconfig, smoke-тест | [#2](https://github.com/dontuo/kzp_lab/pull/2) |
+| [#3](https://github.com/dontuo/kzp_lab/issues/3) Налаштування GitHub Actions (`infra`) | CI на трьох ОС, артефакт, шаблони Issues і PR, ролі ШІ | [#4](https://github.com/dontuo/kzp_lab/pull/4) |
+| [#5](https://github.com/dontuo/kzp_lab/issues/5) Аргументи командного рядка (`feature`) | `--help`, `--input`, `--output`, `--version`, `run(args)` | [#9](https://github.com/dontuo/kzp_lab/pull/9) |
+| [#6](https://github.com/dontuo/kzp_lab/issues/6) Реалізувати читання й перевірку записів (`feature`) | `BookParser`, `FileReport` | [#9](https://github.com/dontuo/kzp_lab/pull/9)¹ |
+| [#7](https://github.com/dontuo/kzp_lab/issues/7) Сформувати звіт (`feature`) | `CatalogSummary`, `ReportFormatter` | [#9](https://github.com/dontuo/kzp_lab/pull/9)¹ |
+| [#8](https://github.com/dontuo/kzp_lab/issues/8) Додати документацію (`docs`) | README, REPORT, javadoc | [#10](https://github.com/dontuo/kzp_lab/pull/10) |
+| [#11](https://github.com/dontuo/kzp_lab/issues/11) Ціна приймає суфікси й експоненту Java (`bug`) | перевірка формату ціни регулярним виразом | [#13](https://github.com/dontuo/kzp_lab/pull/13) |
+| [#12](https://github.com/dontuo/kzp_lab/issues/12) Пробіли навколо числа обробляються по-різному (`bug`) | однакова перевірка формату обох числових полів | [#13](https://github.com/dontuo/kzp_lab/pull/13) |
+
+¹ Ключові слова для #6 і #7 у PR #9 були записані в одному рядку, тому GitHub
+їх не розпізнав. Ці GitHub Issues закрито вручну з коментарем-посиланням на #9;
+у наступних PR кожне `Closes #N` записано окремим рядком (див. #13).
+
+Дефекти #11 і #12 знайдено під час перевірки крайових випадків (роль Валідатора):
+`Double.parseDouble` приймає формати Java (`10d`, `1e3`, `0x1p3`) і обрізає
+пробіли, тоді як `Integer.parseInt` – ні.
 
 ## 7. Приклади роботи
 
@@ -190,9 +204,18 @@ BUILD SUCCESS
 
 CI:
 
-- успішний запуск: TODO: посилання на GitHub Actions
-- артефакт jar: TODO: посилання на артефакт
-- результати на трьох ОС: TODO: ubuntu-latest / windows-latest / macos-latest – success
+- успішний запуск CI № 13: https://github.com/dontuo/kzp_lab/actions/runs/37765446907
+- артефакти jar:
+  - [lab01-ubuntu-latest-build-13](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/artifacts/11544546287)
+  - [lab01-windows-latest-build-13](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/artifacts/11543782993)
+  - [lab01-macos-latest-build-13](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/artifacts/11543593462)
+- результати на трьох ОС (тести, SpotBugs, пакування, запуск jar):
+
+  | ОС | Результат |
+  |---|---|
+  | ubuntu-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/job/113271864779) |
+  | windows-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/job/113271864594) |
+  | macos-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/37765446907/job/113271865218) |
 - Git-тег: `v1.0.0`
 
 ## 9. Документація
@@ -216,6 +239,7 @@ Javadoc мають усі публічні класи, `main`, `run`, `process`,
 - workflow GitHub Actions, шаблони Issues і PR, файли ролей `ai/`;
 - приклад вхідних даних `data/input.csv` з переліком хибних випадків;
 - реалізація розбору аргументів, перевірки записів, обчислення показників, формування звіту та тестів;
+- виправлення дефектів #11 і #12 у `BookParser`;
 - чернетка README.md і цього звіту.
 
 **Виправлені помилки, знайдені під час роботи:**
@@ -225,11 +249,34 @@ Javadoc мають усі публічні класи, `main`, `run`, `process`,
 - `--version` давав `NullPointerException` поза jar – версію перенесено у `version.properties`;
 - SpotBugs `OS_OPEN_STREAM` – незакритий `InputStreamReader` у `versionText`.
 
-**Мій внесок:** TODO: що зроблено й перевірено власноруч
+**Мій внесок:**
 
-**Редакційний процес:** TODO: як перевірено запропоноване
+- обрав варіант, створив публічний репозиторій, налаштував Git (ім'я та пошту
+  автора комітів, SSH-доступ до GitHub);
+- згенерував Maven Wrapper і перевірив збірку локально через `./mvnw`;
+- створив мітки `infra`, `feature`, `bug`, `docs` і всі GitHub Issues (#1, #3,
+  #5–#8, #11, #12, #14), заповнив критерії готовності;
+- вів роботу через гілки та Pull Request (#2, #4, #9, #10, #13, #15): відкривав
+  PR, перевіряв зміни й результати CI на трьох ОС, виконував merge;
+- написав першу версію розбору аргументів (`switch` по `args`, `--help`,
+  `--input`, `--version`) і знайшов, що `System.exit` у `main` зупиняє тести;
+- закрив вручну #6 і #7, коли GitHub не розпізнав ключові слова в PR #9;
+- ухвалив рішення вести всі лабораторні в одному репозиторії з тегами версій.
 
-**Відповідальність:** TODO: підтвердження, що результати правдиві й увесь код зрозумілий
+**Редакційний процес:** ШІ використовувався в діалоговому режимі: я ставив
+запитання (як імпортувати `Path`, чому `System.exit` ламає тести, чи додавати
+`.mvn` до `.gitignore`, як оформлювати Issues), отримував пояснення й
+пропозиції та вирішував, що з них прийняти. Кожну зміну перевіряв локальним
+запуском `./mvnw clean verify` і запуском jar на `data/input.csv`, а перед
+merge – зеленим CI на Ubuntu, Windows та macOS. Очікувані значення показників
+(6 записів, 190.00, Кобзар 250.00, 860.39) звірено з ручним обчисленням.
+Окремі пропозиції відхилено або змінено: репозиторій не перейменовано, а
+версії лабораторних позначаються тегами.
+
+**Відповідальність:** підтверджую, що наведені результати запуску, тестів і CI
+правдиві та отримані на поданому коді. Я розумію призначення кожного класу,
+методу й рядка конфігурації в репозиторії та можу пояснити їх на захисті.
+Відповідальність за поданий код і звіт несу я.
 
 ## 11. Відповіді на контрольні питання
 
