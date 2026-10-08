@@ -5,7 +5,12 @@
 - Тема: розгортання Java-проєкту та базова обробка даних.
 - Лабораторна робота № 1, варіант 1 – «Каталог книжок».
 - Операційна система: Gentoo Linux, OpenJDK 25 (код компілюється з `--release 21`).
-- Репозиторій: TODO: посилання на репозиторій
+- Репозиторій: https://github.com/dontuo/kzp_lab
+- Стан лабораторної роботи № 1: тег `v1.0.0` – https://github.com/dontuo/kzp_lab/tree/v1.0.0
+
+Усі лабораторні роботи наскрізного проєкту ведуться в одному репозиторії, бо
+кожна наступна робота розвиває код попередньої. Стан кожної здачі позначено
+Git-тегом (`v1.0.0` – ЛР № 1), тому назва репозиторію не містить номера роботи.
 
 ## 2. Мета роботи
 
@@ -108,14 +113,22 @@ lab01 1.0.0 (build TODO: номер)
 
 | GitHub Issue | Зміна | Pull Request |
 |---|---|---|
-| TODO: #1 Налаштування лабораторної роботи №1 | план роботи | TODO |
-| TODO: #N Налаштувати Maven-проєкт | pom.xml, Wrapper, smoke-тест | #2 |
-| TODO: #N Налаштувати GitHub Actions | CI на трьох ОС, шаблони, ролі ШІ | #4 |
-| TODO: #N Аргументи командного рядка | `--help`, `--input`, `--output`, `--version` | TODO |
-| TODO: #N Читання й перевірка записів | `BookParser`, `FileReport` | TODO |
-| TODO: #N Сформувати звіт | `CatalogSummary`, `ReportFormatter` | TODO |
-| TODO: #N bug: ... | TODO | TODO |
-| TODO: #N Документація | README, REPORT, javadoc | TODO |
+| [#1](https://github.com/dontuo/kzp_lab/issues/1) Налаштувати Maven-проєкт і Maven Wrapper (`infra`) | pom.xml, Wrapper, .gitignore, .gitattributes, .editorconfig, smoke-тест | [#2](https://github.com/dontuo/kzp_lab/pull/2) |
+| [#3](https://github.com/dontuo/kzp_lab/issues/3) Налаштування GitHub Actions (`infra`) | CI на трьох ОС, артефакт, шаблони Issues і PR, ролі ШІ | [#4](https://github.com/dontuo/kzp_lab/pull/4) |
+| [#5](https://github.com/dontuo/kzp_lab/issues/5) Аргументи командного рядка (`feature`) | `--help`, `--input`, `--output`, `--version`, `run(args)` | [#9](https://github.com/dontuo/kzp_lab/pull/9) |
+| [#6](https://github.com/dontuo/kzp_lab/issues/6) Реалізувати читання й перевірку записів (`feature`) | `BookParser`, `FileReport` | [#9](https://github.com/dontuo/kzp_lab/pull/9)¹ |
+| [#7](https://github.com/dontuo/kzp_lab/issues/7) Сформувати звіт (`feature`) | `CatalogSummary`, `ReportFormatter` | [#9](https://github.com/dontuo/kzp_lab/pull/9)¹ |
+| [#8](https://github.com/dontuo/kzp_lab/issues/8) Додати документацію (`docs`) | README, REPORT, javadoc | [#10](https://github.com/dontuo/kzp_lab/pull/10) |
+| [#11](https://github.com/dontuo/kzp_lab/issues/11) Ціна приймає суфікси й експоненту Java (`bug`) | перевірка формату ціни регулярним виразом | [#13](https://github.com/dontuo/kzp_lab/pull/13) |
+| [#12](https://github.com/dontuo/kzp_lab/issues/12) Пробіли навколо числа обробляються по-різному (`bug`) | однакова перевірка формату обох числових полів | [#13](https://github.com/dontuo/kzp_lab/pull/13) |
+
+¹ Ключові слова для #6 і #7 у PR #9 були записані в одному рядку, тому GitHub
+їх не розпізнав. Ці GitHub Issues закрито вручну з коментарем-посиланням на #9;
+у наступних PR кожне `Closes #N` записано окремим рядком (див. #13).
+
+Дефекти #11 і #12 знайдено під час перевірки крайових випадків (роль Валідатора):
+`Double.parseDouble` приймає формати Java (`10d`, `1e3`, `0x1p3`) і обрізає
+пробіли, тоді як `Integer.parseInt` – ні.
 
 ## 7. Приклади роботи
 
