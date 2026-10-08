@@ -72,19 +72,47 @@ class BookParserTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"abc", "240.5", "99999999999", " 280"})
+    @ValueSource(strings = {"abc", "240.5", " 280", "280 ", "+280", "1e2"})
     void nonIntegerPagesAreRejected(String pages) {
         String error = BookParser.validate("Книга;Автор;" + pages + ";100.00");
         assertNotNull(error);
         assertTrue(error.startsWith("кількість сторінок не є цілим числом"), error);
     }
 
+    @Test
+    void pagesOverflowIsRejected() {
+        assertEquals("кількість сторінок завелика: \"99999999999\"",
+                BookParser.validate("Собор;Олесь Гончар;99999999999;200.00"));
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = {"ціна", "99,50"})
+    @ValueSource(strings = {"ціна", "99,50", ".5", "5.", "NaN", "Infinity", "-Infinity"})
     void nonNumericPriceIsRejected(String price) {
         String error = BookParser.validate("Книга;Автор;100;" + price);
         assertNotNull(error);
         assertTrue(error.startsWith("ціна не є числом"), error);
+    }
+
+    /* #11: Double.parseDouble приймає суфікси типів, експоненту та шістнадцятковий запис. */
+    @ParameterizedTest
+    @ValueSource(strings = {"10d", "10D", "10f", "1e3", "1E3", "0x1p3"})
+    void javaSpecificPriceFormatsAreRejected(String price) {
+        String error = BookParser.validate("Книга;Автор;100;" + price);
+        assertNotNull(error, price);
+        assertTrue(error.startsWith("ціна не є числом"), error);
+    }
+
+    /* #12: пробіли навколо числа відкидаються однаково для обох числових полів. */
+    @ParameterizedTest
+    @ValueSource(strings = {"А;Б; 280;10.00", "А;Б;280 ;10.00", "В;Г;280; 10.00", "В;Г;280;10.00 ", "В;Г;280;\t10.00"})
+    void spacesAroundNumbersAreRejectedInBothFields(String line) {
+        assertNotNull(BookParser.validate(line), line);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"10", "10.5", "10.50", "0.99"})
+    void plainDecimalPriceIsValid(String price) {
+        assertNull(BookParser.validate("Книга;Автор;100;" + price));
     }
 
     @ParameterizedTest
@@ -100,9 +128,10 @@ class BookParserTest {
         assertEquals("від'ємна ціна: -99.00", BookParser.validate("Енеїда;Іван Котляревський;304;-99.00"));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"NaN", "Infinity", "-Infinity"})
-    void nonFinitePriceIsRejected(String price) {
+    @Test
+    void hugePriceIsRejected() {
+        // 400 цифр проходять перевірку формату, але parseDouble дає Infinity.
+        String price = "9".repeat(400);
         String error = BookParser.validate("Книга;Автор;100;" + price);
         assertNotNull(error);
         assertTrue(error.startsWith("ціна має бути скінченним числом"), error);

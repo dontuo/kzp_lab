@@ -1,6 +1,7 @@
 package ua.lpnu.kzp;
 
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Розбирає та перевіряє один рядок каталогу книжок.
@@ -22,6 +23,13 @@ public final class BookParser {
 
     /* Роздільник полів у вхідному файлі. */
     private static final String SEPARATOR = ";";
+    /* Ціле число: необов'язковий мінус і лише цифри, без пробілів і знака плюс. */
+    private static final Pattern INTEGER = Pattern.compile("-?\\d+");
+    /*
+     * Десяткове число з крапкою: цифри та необов'язкова дробова частина.
+     * Відсікає те, що Double.parseDouble теж приймає: пробіли, 10d, 1e3, 0x1p3, NaN, Infinity.
+     */
+    private static final Pattern DECIMAL = Pattern.compile("-?\\d+(\\.\\d+)?");
 
     /* Забороняє створення екземплярів службового класу. */
     private BookParser() {
@@ -73,25 +81,29 @@ public final class BookParser {
             return "порожня ціна";
         }
 
+        // Формат перевіряємо до перетворення: parseInt і parseDouble по-різному
+        // ставляться до пробілів, а parseDouble приймає ще й 10d, 1e3, NaN.
+        if (!INTEGER.matcher(fields[PAGES]).matches()) {
+            return String.format(Locale.ROOT, "кількість сторінок не є цілим числом: \"%s\"", fields[PAGES]);
+        }
+        if (!DECIMAL.matcher(fields[PRICE]).matches()) {
+            return String.format(Locale.ROOT, "ціна не є числом: \"%s\"", fields[PRICE]);
+        }
+
         int pages;
         try {
             pages = Integer.parseInt(fields[PAGES]);
         } catch (NumberFormatException exception) {
-            return String.format(Locale.ROOT, "кількість сторінок не є цілим числом: \"%s\"", fields[PAGES]);
+            // Формат правильний, тож виняток можливий лише через переповнення int.
+            return String.format(Locale.ROOT, "кількість сторінок завелика: \"%s\"", fields[PAGES]);
         }
-
-        double price;
-        try {
-            price = Double.parseDouble(fields[PRICE]);
-        } catch (NumberFormatException exception) {
-            return String.format(Locale.ROOT, "ціна не є числом: \"%s\"", fields[PRICE]);
-        }
+        double price = Double.parseDouble(fields[PRICE]);
 
         // Книга без сторінок не має сенсу, тому нуль теж відкидаємо.
         if (pages <= 0) {
             return String.format(Locale.ROOT, "кількість сторінок має бути додатною: %d", pages);
         }
-        // parseDouble приймає "NaN" та "Infinity", але для ціни це не числа.
+        // Число з сотень цифр parseDouble перетворює на Infinity.
         if (!Double.isFinite(price)) {
             return String.format(Locale.ROOT, "ціна має бути скінченним числом: \"%s\"", fields[PRICE]);
         }
