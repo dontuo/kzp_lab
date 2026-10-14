@@ -59,7 +59,7 @@ class MainTest {
     void versionPrintsProjectVersion() {
         Result result = run("--version");
         assertEquals(Main.EXIT_OK, result.code());
-        assertTrue(result.out().contains("4.0.0"), result.out());
+        assertTrue(result.out().contains("5.0.0"), result.out());
     }
 
     @Test
@@ -96,6 +96,37 @@ class MainTest {
         assertTrue(report.contains(String.format(Locale.ROOT, "%-28s %-6s %s", "електронна", "3", "569.00 грн")), report);
         assertTrue(report.contains("Пропущено рядків: 5"), report);
         assertTrue(report.contains("Рядок 8: невідомий формат книги: \"AUDIO\""), report);
+    }
+
+    @Test
+    void exportWritesCsvAndChecksRoundTrip() throws IOException, DataStorageException {
+        Path export = tempDir.resolve(Path.of("export", "books.csv"));
+        Result result = run("--input", "data/library.csv", "--output", tempDir.resolve("r.txt").toString(),
+                "--export", export.toString());
+
+        assertEquals(Main.EXIT_OK, result.code(), result.err());
+        assertTrue(result.out().contains("Експортовано записів: 6"), result.out());
+        assertTrue(result.out().contains("без року чи жанру пропущено: 1"), result.out());
+        assertTrue(result.out().contains("Round-trip: відновлено 6 з 6 записів без змін"), result.out());
+        assertEquals(6, BookRecord.readCsv(export).size());
+    }
+
+    @Test
+    void exportWithoutValueIsUsageError() {
+        Result result = run("--export");
+        assertEquals(Main.EXIT_USAGE, result.code());
+        assertTrue(result.err().contains("--export"));
+    }
+
+    @Test
+    void exportFileErrorShowsCause() throws IOException {
+        Path notADirectory = Files.writeString(tempDir.resolve("file.txt"), "x", StandardCharsets.UTF_8);
+        Result result = run("--input", "data/library.csv", "--output", tempDir.resolve("r.txt").toString(),
+                "--export", notADirectory.resolve("books.csv").toString());
+
+        assertEquals(Main.EXIT_ERROR, result.code());
+        assertTrue(result.err().contains("Помилка експорту: не вдалося записати файл"), result.err());
+        assertTrue(result.err().contains("Причина: java.nio.file."), result.err());
     }
 
     @Test
