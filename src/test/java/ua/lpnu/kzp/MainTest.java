@@ -59,7 +59,7 @@ class MainTest {
     void versionPrintsProjectVersion() {
         Result result = run("--version");
         assertEquals(Main.EXIT_OK, result.code());
-        assertTrue(result.out().contains("3.0.0"), result.out());
+        assertTrue(result.out().contains("4.0.0"), result.out());
     }
 
     @Test

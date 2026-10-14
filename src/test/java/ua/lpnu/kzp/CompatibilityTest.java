@@ -10,7 +10,10 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -19,9 +22,12 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * Перевіряє, що перебудови не змінили зовнішню поведінку програми понад задокументоване.
  *
- * <p>Файл {@code lab01-report.txt} – контрольний звіт, отриманий версією 1.0.0
- * (тег {@code v1.0.0}) на тому самому {@code data/input.csv}. Версія 2.0.0 давала
- * точно такий самий звіт.
+ * <p>Контрольні звіти в ресурсах тестів:
+ * <ul>
+ *   <li>{@code lab01-report.txt} – версія 1.0.0 на {@code data/input.csv}
+ *       (версія 2.0.0 давала точно такий самий звіт);</li>
+ *   <li>{@code lab03-books-report.txt} – версія 3.0.0 на {@code data/books.csv}.</li>
+ * </ul>
  */
 class CompatibilityTest {
     /*
@@ -39,13 +45,34 @@ class CompatibilityTest {
             "друкована                    6      1160.39 грн",
             "електронна                   0      0.00 грн");
 
+    /* Блок запитів ЛР № 4 у кінці звіту на data/input.csv: у старому форматі немає року й жанру. */
+    private static final List<String> QUERIES_BLOCK_INPUT_LAB04 = List.of(
+            "",
+            row("Запит", "Результат"),
+            row("Книги від 2020 року", "немає даних"),
+            row("Кількість книг за жанром", "немає даних"),
+            row("Статистика сторінок", "кількість 6, мін. 32, макс. 320, сума 1140, середнє 190.00"),
+            row("Топ-5 за сторінками",
+                    "Кобзар (320), Тигролови (288), Захар Беркут (224), Лісова пісня (180), Інститутка (96)"),
+            row("Жанри за форматом", "немає даних"));
+
+    /* Блок запитів ЛР № 4 у кінці звіту на data/books.csv. */
+    private static final List<String> QUERIES_BLOCK_BOOKS_LAB04 = List.of(
+            "",
+            row("Запит", "Результат"),
+            row("Книги від 2020 року", "Амадока"),
+            row("Кількість книг за жанром", "драма 1, поезія 1, роман 4"),
+            row("Статистика сторінок", "кількість 7, мін. 180, макс. 832, сума 2548, середнє 364.00"),
+            row("Топ-5 за сторінками", "Амадока (832), Доця (368), Інтернат (336), Кобзар (320), Тигролови (288)"),
+            row("Жанри за форматом", "друкована: драма 1, поезія 1, роман 1; електронна: роман 3"));
+
     @TempDir
     Path tempDir;
 
     @Test
-    void reportDiffersFromLab01OnlyAsDocumented() throws IOException {
-        List<String> actual = runReport().lines().toList();
-        List<String> expected = expectedLab01Report().lines()
+    void inputReportDiffersFromLab01OnlyAsDocumented() throws IOException {
+        List<String> actual = runReport(Path.of("data", "input.csv"));
+        List<String> lab01 = resourceLines("/lab01-report.txt").stream()
                 .map(line -> {
                     // Рядки помилок у звіті мають відступ у два пробіли.
                     String changed = CHANGED_MESSAGES_LAB03.get(line.strip());
@@ -54,42 +81,67 @@ class CompatibilityTest {
                 .toList();
 
         // Таблиця ЛР № 1 закінчується рядком сумарної вартості; блок форматів іде одразу після неї.
-        int tableEnd = expected.indexOf("Сумарна вартість каталогу    860.39 грн") + 1;
-        assertEquals(expected.subList(0, tableEnd), actual.subList(0, tableEnd), "таблиця показників ЛР № 1");
-        assertEquals(FORMAT_BLOCK_LAB03, actual.subList(tableEnd, tableEnd + FORMAT_BLOCK_LAB03.size()),
-                "блок форматів ЛР № 3");
-        assertEquals(expected.subList(tableEnd, expected.size()),
-                actual.subList(tableEnd + FORMAT_BLOCK_LAB03.size(), actual.size()), "пропущені рядки");
+        int tableEnd = lab01.indexOf("Сумарна вартість каталогу    860.39 грн") + 1;
+        List<String> expected = new ArrayList<>(lab01.subList(0, tableEnd));
+        expected.addAll(FORMAT_BLOCK_LAB03);
+        expected.addAll(lab01.subList(tableEnd, lab01.size()));
+        expected.addAll(QUERIES_BLOCK_INPUT_LAB04);
+
+        assertEquals(expected, actual);
     }
 
-    /* Запускає програму на data/input.csv і повертає звіт у вигляді Linux. */
-    private String runReport() throws IOException {
+    @Test
+    void booksReportDiffersFromLab03OnlyByQueriesBlock() throws IOException {
+        List<String> expected = new ArrayList<>(resourceLines("/lab03-books-report.txt"));
+        expected.addAll(QUERIES_BLOCK_BOOKS_LAB04);
+
+        assertEquals(withoutCurrentYear(expected), withoutCurrentYear(runReport(Path.of("data", "books.csv"))));
+    }
+
+    /* Рядок таблиці звіту: назва вирівняна ліворуч у полі шириною 28 символів. */
+    private static String row(String label, String value) {
+        return String.format(Locale.ROOT, "%-28s %s", label, value);
+    }
+
+    /* Запускає програму й повертає рядки звіту у вигляді Linux. */
+    private List<String> runReport(Path input) throws IOException {
         Path output = tempDir.resolve("report.txt");
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
         int code;
         try {
-            code = Main.run(new String[] {"--output", output.toString()});
+            code = Main.run(new String[] {"--input", input.toString(), "--output", output.toString()});
         } finally {
             System.setOut(originalOut);
         }
         assertEquals(Main.EXIT_OK, code);
-        return normalize(Files.readString(output, StandardCharsets.UTF_8));
+        return normalize(Files.readString(output, StandardCharsets.UTF_8)).lines().toList();
     }
 
     /* Читає контрольний звіт із ресурсів тестів. */
-    private static String expectedLab01Report() throws IOException {
-        try (InputStream in = CompatibilityTest.class.getResourceAsStream("/lab01-report.txt")) {
-            assertNotNull(in, "немає контрольного звіту lab01-report.txt");
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+    private static List<String> resourceLines(String name) throws IOException {
+        try (InputStream in = CompatibilityTest.class.getResourceAsStream(name)) {
+            assertNotNull(in, "немає контрольного звіту " + name);
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8).lines().toList();
         }
     }
 
     /*
-     * Контрольний звіт записано на Linux. На Windows %n дає \r\n, а Path друкує
+     * Контрольні звіти записано на Linux. На Windows %n дає \r\n, а Path друкує
      * data\input.csv, тому зводимо обидві відмінності ОС до вигляду Linux.
      */
     private static String normalize(String report) {
         return report.replace("\r\n", "\n").replace('\\', '/');
+    }
+
+    /*
+     * Повідомлення про рік видання містить поточний рік ("від 1450 до 2026"), тому
+     * контрольний звіт 2026 року інакше застарів би з настанням нового року.
+     */
+    private static List<String> withoutCurrentYear(List<String> lines) {
+        return lines.stream()
+                .map(line -> line.replace("до " + Year.now().getValue() + ":", "до <поточний рік>:")
+                        .replace("до 2026:", "до <поточний рік>:"))
+                .toList();
     }
 }

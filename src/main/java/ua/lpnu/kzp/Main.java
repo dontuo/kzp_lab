@@ -133,7 +133,7 @@ public final class Main {
         CatalogSummary summary = CatalogSummary.of(books);
 
         // Один текст звіту для обох приймачів, щоб консоль і файл не розходилися.
-        String report = ReportFormatter.format(input, summary, errors);
+        String report = ReportFormatter.format(input, summary, errors) + ReportFormatter.formatQueries(books);
         System.out.print(report);
         FileReport.writeReport(output, report);
         System.out.printf("%nЗвіт записано у файл: %s%n", output);

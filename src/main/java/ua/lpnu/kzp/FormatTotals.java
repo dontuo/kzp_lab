@@ -25,6 +25,29 @@ public record FormatTotals(int count, double purchaseCost) {
     }
 
     /**
+     * Повертає підсумок для однієї книги.
+     *
+     * @param book книга будь-якого підтипу
+     * @return кількість 1 і вартість придбання цієї книги
+     */
+    public static FormatTotals of(Book book) {
+        // purchaseCost() – поліморфний виклик: правило вартості обирає підтип книги.
+        return new FormatTotals(1, book.purchaseCost());
+    }
+
+    /**
+     * Повертає суму двох підсумків; поточний об'єкт не змінюється.
+     *
+     * <p>Разом із {@link #ZERO} утворює операцію для {@code Stream.reduce}.
+     *
+     * @param other підсумок, який додається
+     * @return новий підсумок
+     */
+    public FormatTotals plus(FormatTotals other) {
+        return new FormatTotals(count + other.count, purchaseCost + other.purchaseCost);
+    }
+
+    /**
      * Повертає підсумок, до якого додано одну книгу; поточний об'єкт не змінюється.
      *
      * @param book книга будь-якого підтипу

@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 class ReportFormatterTest {
     @Test
     void reportContainsAllIndicatorsAndErrors() {
-        CatalogSummary summary = new CatalogSummary();
-        summary.add(Book.fromCsv("Кобзар;Тарас Шевченко;320;250.00"));
-        summary.add(Book.fromCsv("Лісова пісня;Леся Українка;180;145.50"));
+        CatalogSummary summary = CatalogSummary.of(List.of(
+                Book.fromCsv("Кобзар;Тарас Шевченко;320;250.00"),
+                Book.fromCsv("Лісова пісня;Леся Українка;180;145.50")));
 
         String report = ReportFormatter.format(Path.of("data", "input.csv"), summary,
                 List.of("Рядок 3: порожній рядок"));
@@ -33,8 +33,7 @@ class ReportFormatterTest {
         // Українська локаль використовує кому; звіт усе одно має містити крапку.
         Locale.setDefault(Locale.forLanguageTag("uk-UA"));
         try {
-            CatalogSummary summary = new CatalogSummary();
-            summary.add(Book.fromCsv("А;Б;3;1.50"));
+            CatalogSummary summary = CatalogSummary.of(List.of(Book.fromCsv("А;Б;3;1.50")));
             String report = ReportFormatter.format(Path.of("in.csv"), summary, List.of());
             assertTrue(report.contains("1.50 грн"), report);
             assertFalse(report.contains("1,50"), report);
@@ -45,14 +44,14 @@ class ReportFormatterTest {
 
     @Test
     void emptyCatalogIsReportedWithoutBook() {
-        String report = ReportFormatter.format(Path.of("in.csv"), new CatalogSummary(), List.of());
+        String report = ReportFormatter.format(Path.of("in.csv"), CatalogSummary.of(List.of()), List.of());
         assertTrue(report.contains("немає даних"));
         assertTrue(report.contains("0.00"));
     }
 
     @Test
     void reportUsesPlatformLineSeparator() {
-        String report = ReportFormatter.format(Path.of("in.csv"), new CatalogSummary(), List.of());
+        String report = ReportFormatter.format(Path.of("in.csv"), CatalogSummary.of(List.of()), List.of());
         assertTrue(report.endsWith(System.lineSeparator()));
     }
 }

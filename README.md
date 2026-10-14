@@ -11,6 +11,7 @@
 | `v1.0.0` | № 1 | консольна програма на рядках і масивах |
 | `v2.0.0` | № 2 | клас-сутність `Book`, record `PagePrice`, валідація в конструкторі |
 | `v3.0.0` | № 3 | ієрархія `Book` → `PrintedBook`, `ElectronicBook`, `enum BookFormat`, `equals`/`hashCode` |
+| `v4.0.0` | № 4 | запити Stream API (`BookQueries`), показники через потоки, блок запитів у звіті |
 
 ## Показники
 
@@ -71,12 +72,12 @@ title;author;pages;price;format;year;genre            # повний форма�
 
 У Windows замість `./mvnw` використовуйте `mvnw.cmd`. Команда `verify` компілює код,
 запускає тести, збирає jar і виконує статичний аналіз SpotBugs.
-Готовий файл: `target/book-catalog-3.0.0.jar`.
+Готовий файл: `target/book-catalog-4.0.0.jar`.
 
 ## Запуск
 
 ```text
-java -jar target/book-catalog-3.0.0.jar [--help] [--version] [--input <файл>] [--output <файл>]
+java -jar target/book-catalog-4.0.0.jar [--help] [--version] [--input <файл>] [--output <файл>]
 ```
 
 | Аргумент | Призначення | За замовчуванням |
@@ -94,7 +95,7 @@ java -jar target/book-catalog-3.0.0.jar [--help] [--version] [--input <файл>
 ## Приклад
 
 ```text
-$ java -jar target/book-catalog-3.0.0.jar
+$ java -jar target/book-catalog-4.0.0.jar
 Звіт: каталог книжок
 Вхідний файл: data/input.csv
 
@@ -113,6 +114,13 @@ $ java -jar target/book-catalog-3.0.0.jar
   Рядок 7: очікується 4 або 7 полів, отримано 3
   Рядок 12: кількість сторінок не є цілим числом: "abc"
   ...
+
+Запит                        Результат
+Книги від 2020 року          немає даних
+Кількість книг за жанром     немає даних
+Статистика сторінок          кількість 6, мін. 32, макс. 320, сума 1140, середнє 190.00
+Топ-5 за сторінками          Кобзар (320), Тигролови (288), Захар Беркут (224), Лісова пісня (180), Інститутка (96)
+Жанри за форматом            немає даних
 
 Звіт записано у файл: out/report.txt
 ```
@@ -138,6 +146,24 @@ BookFormat (enum): PRINTED «друкована», ELECTRONIC «електрон
 Об'єкти незмінні: поля `private final`, сеттерів немає. Код звіту обробляє всі книги
 через тип `Book` і не перевіряє, друкована книга чи електронна.
 
+## Запити
+
+`BookQueries` виконує запити Stream API до списку коректних книг. Результати
+виводяться в кінці звіту.
+
+| Запит | Операції | Результат |
+|---|---|---|
+| книги від 2020 року | `filter` | `List<Book>` у порядку файла; книги без року не входять |
+| назви | `map` | `List<String>` |
+| кількість за жанром | `groupingBy` + `counting`, `TreeMap` | `Map<String, Long>`, жанри за абеткою |
+| статистика сторінок | `summarizingInt` | `IntSummaryStatistics` |
+| топ-5 за сторінками | `sorted` (сторінки ↓, потім назва ↑) + `limit` | `List<Book>` |
+| пошук за назвою | `filter` + `findFirst` | `Optional<Book>` |
+| жанри за форматом | `groupingBy` у `groupingBy` | `Map<BookFormat, Map<String, Long>>` |
+
+Показники каталогу (`CatalogSummary`) теж обчислюються потоками: `reduce` для сум,
+`max` для найдорожчої книги, `toMap` в `EnumMap` для підсумків за форматом.
+
 ## Структура
 
 ```text
@@ -150,12 +176,13 @@ src/main/java/ua/lpnu/kzp/
 ├── PagePrice.java        record «сторінки, ціна»
 ├── FormatTotals.java     record «кількість книг, вартість придбання» для формату
 ├── BookParser.java       розкладка полів CSV; перевірка рядка без створення об'єкта
-├── CatalogSummary.java   обчислення показників за списком книг
+├── CatalogSummary.java   незмінні показники каталогу, обчислені потоками
+├── BookQueries.java      запити Stream API та пошук через Optional
 ├── ReportFormatter.java  формування тексту звіту
 └── FileReport.java       читання та запис файлів у UTF-8
 src/main/resources/version.properties   назва, версія та номер збірки для --version
 src/test/java/ua/lpnu/kzp/              тести JUnit 5
-src/test/resources/lab01-report.txt     контрольний звіт v1.0.0 для перевірки сумісності
+src/test/resources/                     контрольні звіти v1.0.0 (input.csv) і v3.0.0 (books.csv)
 data/input.csv                          приклад у форматі ЛР № 1–2
 data/books.csv                          приклад у повному форматі
 spotbugs-exclude.xml                    обґрунтовані виключення SpotBugs

@@ -51,14 +51,14 @@ class FormatTotalsTest {
 
     @Test
     void emptySummaryHasZeroForEveryFormat() {
-        Map<BookFormat, FormatTotals> byFormat = new CatalogSummary().getByFormat();
+        Map<BookFormat, FormatTotals> byFormat = CatalogSummary.of(List.of()).getByFormat();
         assertEquals(FormatTotals.ZERO, byFormat.get(BookFormat.PRINTED));
         assertEquals(FormatTotals.ZERO, byFormat.get(BookFormat.ELECTRONIC));
     }
 
     @Test
     void byFormatCannotBeModifiedFromOutside() {
-        Map<BookFormat, FormatTotals> byFormat = new CatalogSummary().getByFormat();
+        Map<BookFormat, FormatTotals> byFormat = CatalogSummary.of(List.of()).getByFormat();
         assertThrows(UnsupportedOperationException.class, () -> byFormat.put(BookFormat.PRINTED, FormatTotals.ZERO));
     }
 }
