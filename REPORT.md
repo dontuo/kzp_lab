@@ -141,34 +141,22 @@ Maven, Wrapper, SpotBugs, shade, CI, шаблони Issues і PR перенес�
 
 CI:
 
-- успішний запуск CI № 21 (коміт `8b19e5a`): https://github.com/dontuo/kzp_lab/actions/runs/38589292327
-- артефакти jar:
-  - [book-catalog-ubuntu-latest-build-21](https://github.com/dontuo/kzp_lab/actions/runs/38589292327/artifacts/11908000106)
-  - [book-catalog-windows-latest-build-21](https://github.com/dontuo/kzp_lab/actions/runs/38589292327/artifacts/11907580304)
-  - [book-catalog-macos-latest-build-21](https://github.com/dontuo/kzp_lab/actions/runs/38589292327/artifacts/11907585352)
-- результати на трьох ОС (110 тестів, зокрема `CompatibilityTest`, SpotBugs, пакування, запуск jar):
-
-  | ОС | Результат |
-  |---|---|
-  | ubuntu-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38589292327/job/115939548223) |
-  | windows-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38589292327/job/115939547697) |
-  | macos-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38589292327/job/115939548278) |
+- успішний запуск: TODO: посилання на GitHub Actions
+- артефакти jar: TODO: посилання на артефакти `book-catalog-<os>-build-N`
+- результати на трьох ОС: TODO: ubuntu-latest / windows-latest / macos-latest
 - Git-тег: `v2.0.0`
 
 ## 8. GitHub Issues і Pull Request
 
-| GitHub Issue | Зміна | Перевірка | Pull Request |
-|---|---|---|---|
-| [#16](https://github.com/dontuo/kzp_lab/issues/16) Клас-сутність Book (`feature`) | `Book`: поля, конструктор, геттери, `toString` | `BookTest` | [#22](https://github.com/dontuo/kzp_lab/pull/22) |
-| [#17](https://github.com/dontuo/kzp_lab/issues/17) Валідація інваріантів і фабрика fromCsv (`feature`) | інваріанти в конструкторі, формат у `fromCsv`, будівник | `BookTest`, `BookParserTest` без змін | [#22](https://github.com/dontuo/kzp_lab/pull/22) |
-| [#18](https://github.com/dontuo/kzp_lab/issues/18) Record PagePrice для підсумків (`feature`) | `PagePrice`, `CatalogSummary` на `Book` | `PagePriceTest`, `CatalogSummaryTest` | [#22](https://github.com/dontuo/kzp_lab/pull/22) |
-| [#19](https://github.com/dontuo/kzp_lab/issues/19) Тести ЛР2 і сумісність зі звітом ЛР1 (`feature`) | контрольний звіт `v1.0.0`, `CompatibilityTest` | 110 тестів, CI на трьох ОС | [#22](https://github.com/dontuo/kzp_lab/pull/22) |
-| [#20](https://github.com/dontuo/kzp_lab/issues/20) Версія 2.0.0 і артефакт book-catalog | `pom.xml`, `version.properties`, `ci.yml`, шаблони | `--version`, артефакти CI | [#22](https://github.com/dontuo/kzp_lab/pull/22) |
-| [#21](https://github.com/dontuo/kzp_lab/issues/21) Документація ЛР2 (`docs`) | README, REPORT, javadoc, `docs/reports/lab01.md` | javadoc без попереджень | [#22](https://github.com/dontuo/kzp_lab/pull/22) + окремий PR зі звітом |
+| GitHub Issue | Зміна | Перевірка |
+|---|---|---|
+| TODO: #N Клас-сутність Book | `Book`: поля, конструктор, геттери, `toString` | `BookTest` |
+| TODO: #N Фабрика fromCsv | перенесення розбору з `BookParser` | `BookTest`, `BookParserTest` без змін |
+| TODO: #N Record PagePrice | `PagePrice`, `CatalogSummary` на `Book` | `PagePriceTest`, `CatalogSummaryTest` |
+| TODO: #N Сумісність і тести | контрольний звіт, `CompatibilityTest` | 110 тестів, CI |
+| TODO: #N Документація | README, REPORT, javadoc | javadoc без попереджень |
 
-Усі зміни коду надійшли одним Pull Request [#22](https://github.com/dontuo/kzp_lab/pull/22); кожне `Closes #N` записано
-окремим рядком, тому GitHub автоматично закрив #16–#21. Посилання на CI та
-відповіді на контрольні питання додано окремим PR.
+Pull Request: TODO: #N
 
 ## 9. Порівняння поведінки
 
@@ -219,28 +207,11 @@ $ diff src/test/resources/lab01-report.txt out/report.txt
 - відхилено: перетворити `CatalogSummary` на record – він накопичує значення по
   одній книзі, тому лишився звичайним класом, а record використано для `PagePrice`.
 
-**Мій внесок:**
+**Мій внесок:** TODO
 
-- вирішив вести всі лабораторні в одному репозиторії з тегами версій, як і
-  вимагають методичні вказівки ЛР № 2–7;
-- передав методичні вказівки ЛР № 2–7 для аналізу та визначив порядок робіт;
-- спланував перебудову: створив GitHub Issues #16–#21 з критеріями готовності;
-- відкрив Pull Request #22 з `Closes #N` для кожного Issue, перевірив зелений CI
-  на трьох ОС і виконав merge;
-- перевірив, що звіт програми не змінився порівняно з ЛР № 1.
+**Редакційний процес:** TODO
 
-**Редакційний процес:** ШІ використовувався в діалоговому режимі: я ставив
-запитання (які Issues потрібні, чи готова робота) і вирішував, які пропозиції
-прийняти. Кожну зміну перевірено локальним `./mvnw clean verify` (110 тестів,
-SpotBugs без дефектів), автоматичним порівнянням звіту з контрольним виводом
-`v1.0.0` і зеленим CI на Ubuntu, Windows та macOS перед merge. Відмінності в
-повідомленнях для рядків із кількома помилками й формат від'ємної ціни перевірено
-окремим запуском обох версій і описано в розділі 9.
-
-**Відповідальність:** підтверджую, що наведені результати запуску, тестів і CI
-правдиві та отримані на поданому коді. Я розумію призначення класу `Book`, його
-конструктора, фабрики `fromCsv`, будівника, record `PagePrice` і кожного тесту та
-можу пояснити їх на захисті. Відповідальність за поданий код і звіт несу я.
+**Відповідальність:** TODO
 
 ## 11. Відповіді на контрольні питання
 
