@@ -1,60 +1,64 @@
 package ua.lpnu.kzp;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
- * Накопичує чотири показники каталогу: кількість книг, середню кількість
- * сторінок, найдорожчу книгу та сумарну вартість, а також підсумки за форматом видання.
+ * Чотири показники каталогу – кількість книг, середня кількість сторінок, найдорожча
+ * книга та сумарна вартість – і підсумки за форматом видання.
  *
- * <p>Клас обробляє будь-які підтипи {@link Book} через спільний тип і не перевіряє,
- * друкована книга чи електронна.
+ * <p>Об'єкт незмінний: усі показники обчислюються потоками один раз у {@link #of(List)}.
+ * Книги обробляються через спільний тип {@link Book}, без перевірок підтипу.
  */
 public final class CatalogSummary {
-    private int count;
-    // Сума сторінок і цін усіх книг; PagePrice незмінний, тому замінюється цілком.
-    private PagePrice totals = PagePrice.ZERO;
-    private Book mostExpensive;
-    // EnumMap зберігає ключі в порядку оголошення констант, тому звіт стабільний.
-    private final Map<BookFormat, FormatTotals> byFormat = new EnumMap<>(BookFormat.class);
+    private final int count;
+    private final PagePrice totals;
+    // null, якщо книг немає.
+    private final Book mostExpensive;
+    private final Map<BookFormat, FormatTotals> byFormat;
 
-    /** Створює порожній підсумок із нульовими значеннями для кожного формату. */
-    public CatalogSummary() {
-        for (BookFormat format : BookFormat.values()) {
-            byFormat.put(format, FormatTotals.ZERO);
-        }
+    /* Створюється лише через of(List). */
+    private CatalogSummary(int count, PagePrice totals, Book mostExpensive, Map<BookFormat, FormatTotals> byFormat) {
+        this.count = count;
+        this.totals = totals;
+        this.mostExpensive = mostExpensive;
+        this.byFormat = byFormat;
     }
 
     /**
-     * Обчислює показники для списку книг.
+     * Обчислює показники для списку книг; список не змінюється.
      *
-     * @param books коректні книги
-     * @return заповнений підсумок
+     * @param books коректні книги, можливо порожній список
+     * @return підсумок
      */
     public static CatalogSummary of(List<Book> books) {
-        CatalogSummary summary = new CatalogSummary();
-        for (Book book : books) {
-            summary.add(book);
-        }
-        return summary;
+        // reduce починає з нуля, тому порожній список дає PagePrice.ZERO.
+        PagePrice totals = books.stream()
+                .map(Book::pagePrice)
+                .reduce(PagePrice.ZERO, PagePrice::plus);
+        // max за однакової ціни повертає першу з книг, як і строге «>» у циклі ЛР № 1–3.
+        Book mostExpensive = books.stream()
+                .max(Comparator.comparingDouble(Book::getPrice))
+                .orElse(null);
+        // Рядок для кожного формату, навіть без книг; EnumMap тримає порядок констант.
+        Map<BookFormat, FormatTotals> byFormat = Arrays.stream(BookFormat.values())
+                .collect(Collectors.toMap(Function.identity(), format -> totalsFor(books, format),
+                        (first, second) -> first, () -> new EnumMap<>(BookFormat.class)));
+        return new CatalogSummary(books.size(), totals, mostExpensive, byFormat);
     }
 
-    /**
-     * Додає до показників одну книгу.
-     *
-     * @param book книга; її коректність гарантує конструктор {@link Book}
-     */
-    public void add(Book book) {
-        count++;
-        totals = totals.plus(book.pagePrice());
-        // Строге порівняння: за однакової ціни лишається перша книга.
-        if (mostExpensive == null || book.getPrice() > mostExpensive.getPrice()) {
-            mostExpensive = book;
-        }
-        // getFormat() і purchaseCost() усередині plus – поліморфні виклики, без if за підтипом.
-        byFormat.put(book.getFormat(), byFormat.get(book.getFormat()).plus(book));
+    /* Підсумок одного формату; purchaseCost() усередині FormatTotals.of – поліморфний виклик. */
+    private static FormatTotals totalsFor(List<Book> books, BookFormat format) {
+        return books.stream()
+                .filter(book -> book.getFormat() == format)
+                .map(FormatTotals::of)
+                .reduce(FormatTotals.ZERO, FormatTotals::plus);
     }
 
     /**
@@ -69,14 +73,14 @@ public final class CatalogSummary {
     /**
      * Повертає кількість коректних записів.
      *
-     * @return кількість доданих книг
+     * @return кількість книг
      */
     public int getCount() {
         return count;
     }
 
     /**
-     * Повертає суму сторінок і цін усіх доданих книг.
+     * Повертає суму сторінок і цін усіх книг.
      *
      * @return сумарне значення; {@link PagePrice#ZERO}, якщо книг немає
      */

@@ -3,6 +3,7 @@ package ua.lpnu.kzp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -13,16 +14,12 @@ class CatalogSummaryTest {
 
     /* Створює підсумок із готових рядків каталогу. */
     private static CatalogSummary summaryOf(String... lines) {
-        CatalogSummary summary = new CatalogSummary();
-        for (String line : lines) {
-            summary.add(Book.fromCsv(line));
-        }
-        return summary;
+        return CatalogSummary.of(Arrays.stream(lines).map(Book::fromCsv).toList());
     }
 
     @Test
     void emptyCatalogDoesNotDivideByZero() {
-        CatalogSummary summary = new CatalogSummary();
+        CatalogSummary summary = CatalogSummary.of(List.of());
         assertEquals(0, summary.getCount());
         assertEquals(0.0, summary.getAveragePages(), DELTA);
         assertEquals(0.0, summary.getTotalPrice(), DELTA);

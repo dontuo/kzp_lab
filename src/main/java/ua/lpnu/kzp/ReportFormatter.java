@@ -1,8 +1,10 @@
 package ua.lpnu.kzp;
 
 import java.nio.file.Path;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Locale;
 
 /** Формує текст звіту, однаковий для консолі та файла. */
@@ -43,17 +45,70 @@ public final class ReportFormatter {
 
         // Новий блок ЛР № 3 додано після таблиці ЛР № 1, щоб попередні рядки звіту не змінилися.
         report.append(String.format(Locale.ROOT, "%n" + FORMAT_ROW, "Формат видання", "Книг", "Вартість придбання"));
-        for (Map.Entry<BookFormat, FormatTotals> entry : summary.getByFormat().entrySet()) {
-            report.append(String.format(Locale.ROOT, FORMAT_ROW, entry.getKey().getLabel(),
-                    String.format(Locale.ROOT, "%d", entry.getValue().count()),
-                    String.format(Locale.ROOT, "%.2f грн", entry.getValue().purchaseCost())));
-        }
+        report.append(summary.getByFormat().entrySet().stream()
+                .map(entry -> String.format(Locale.ROOT, FORMAT_ROW, entry.getKey().getLabel(),
+                        String.format(Locale.ROOT, "%d", entry.getValue().count()),
+                        String.format(Locale.ROOT, "%.2f грн", entry.getValue().purchaseCost())))
+                .collect(Collectors.joining()));
 
         report.append(String.format(Locale.ROOT, "%nПропущено рядків: %d%n", errors.size()));
-        for (String error : errors) {
-            report.append(String.format(Locale.ROOT, "  %s%n", error));
-        }
+        report.append(errors.stream()
+                .map(error -> String.format(Locale.ROOT, "  %s%n", error))
+                .collect(Collectors.joining()));
         return report.toString();
+    }
+
+    /**
+     * Формує блок із результатами запитів {@link BookQueries}.
+     *
+     * <p>Блок додається в кінець звіту, тому попередні рядки звіту не змінюються.
+     *
+     * @param books коректні книги
+     * @return текст блоку, що починається з порожнього рядка
+     */
+    public static String formatQueries(List<Book> books) {
+        StringBuilder block = new StringBuilder();
+        block.append(String.format(Locale.ROOT, "%n" + ROW, "Запит", "Результат"));
+        block.append(String.format(Locale.ROOT, ROW,
+                String.format(Locale.ROOT, "Книги від %d року", BookQueries.RECENT_YEAR),
+                orNoData(String.join(", ", BookQueries.titles(
+                        BookQueries.publishedSince(books, BookQueries.RECENT_YEAR))))));
+        block.append(String.format(Locale.ROOT, ROW, "Кількість книг за жанром",
+                orNoData(joinCounts(BookQueries.countByGenre(books)))));
+        block.append(String.format(Locale.ROOT, ROW, "Статистика сторінок",
+                pageStatistics(BookQueries.pageStatistics(books))));
+        block.append(String.format(Locale.ROOT, ROW,
+                String.format(Locale.ROOT, "Топ-%d за сторінками", BookQueries.TOP_SIZE),
+                orNoData(BookQueries.topByPages(books, BookQueries.TOP_SIZE).stream()
+                        .map(book -> String.format(Locale.ROOT, "%s (%d)", book.getTitle(), book.getPages()))
+                        .collect(Collectors.joining(", ")))));
+        block.append(String.format(Locale.ROOT, ROW, "Жанри за форматом",
+                orNoData(BookQueries.countByFormatAndGenre(books).entrySet().stream()
+                        .map(entry -> entry.getKey().getLabel() + ": " + joinCounts(entry.getValue()))
+                        .collect(Collectors.joining("; ")))));
+        return block.toString();
+    }
+
+    /* «жанр кількість» через кому, у порядку ключів карти. */
+    private static String joinCounts(Map<String, Long> counts) {
+        return counts.entrySet().stream()
+                .map(entry -> String.format(Locale.ROOT, "%s %d", entry.getKey(), entry.getValue()))
+                .collect(Collectors.joining(", "));
+    }
+
+    /* Для порожньої статистики мінімум і максимум не мають сенсу (MAX_VALUE і MIN_VALUE). */
+    private static String pageStatistics(IntSummaryStatistics statistics) {
+        if (statistics.getCount() == 0) {
+            return "немає даних";
+        }
+        return String.format(Locale.ROOT, "кількість %d, мін. %d, макс. %d, сума %d, середнє %.2f",
+                statistics.getCount(), statistics.getMin(), statistics.getMax(), statistics.getSum(),
+                statistics.getAverage());
+    }
+
+    /* Порожній результат запиту показується явно, а не порожнім місцем. */
+    private static String orNoData(String text) {
+        return text.isEmpty() ? "немає даних" : text;
     }
 
     /* Описує найдорожчу книгу або повідомляє, що книг немає. */
