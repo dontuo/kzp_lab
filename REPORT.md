@@ -207,22 +207,41 @@ Maven, Wrapper, CI, шаблони перенесено без змін. Змі�
 
 CI:
 
-- успішний запуск: TODO: посилання на GitHub Actions
-- артефакти jar: TODO: посилання на артефакти `book-catalog-<os>-build-N`
-- результати на трьох ОС: TODO: ubuntu-latest / windows-latest / macos-latest
+- успішний запуск CI № 30 (коміт `d4d5cf1`): https://github.com/dontuo/kzp_lab/actions/runs/38604649972
+- артефакти jar:
+  - [book-catalog-ubuntu-latest-build-30](https://github.com/dontuo/kzp_lab/actions/runs/38604649972/artifacts/11915003027)
+  - [book-catalog-windows-latest-build-30](https://github.com/dontuo/kzp_lab/actions/runs/38604649972/artifacts/11914803161)
+  - [book-catalog-macos-latest-build-30](https://github.com/dontuo/kzp_lab/actions/runs/38604649972/artifacts/11914638208)
+- результати на трьох ОС (158 тестів, зокрема `CompatibilityTest`, SpotBugs, пакування, запуск jar):
+
+  | ОС | Результат |
+  |---|---|
+  | ubuntu-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38604649972/job/115992301530) |
+  | windows-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38604649972/job/115992301123) |
+  | macos-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38604649972/job/115992301402) |
 - Git-тег: `v3.0.0`
 
 ## 11. GitHub Issues і Pull Request
 
 | GitHub Issue | Зміна | Перевірка | Pull Request |
 |---|---|---|---|
-| [#24](https://github.com/dontuo/kzp_lab/issues/24) Базовий тип Book (`feature`) | `abstract sealed`, спільні поля й інваріанти, рік і жанр | `BookHierarchyTest`, `BookTest` | TODO |
-| [#25](https://github.com/dontuo/kzp_lab/issues/25) Підтипи PrintedBook і ElectronicBook (`feature`) | `purchaseCost()`, `getFormat()` | `BookHierarchyTest` | TODO |
-| [#26](https://github.com/dontuo/kzp_lab/issues/26) enum BookFormat і повний формат CSV (`feature`) | `BookFormat`, 7 полів у CSV, блок звіту, `data/books.csv` | `BookFormatTest`, `BookHierarchyTest`, `MainTest` | TODO |
-| [#27](https://github.com/dontuo/kzp_lab/issues/27) equals і hashCode (`feature`) | рівність за підтипом, назвою й автором | `BookEqualityTest` | TODO |
-| [#28](https://github.com/dontuo/kzp_lab/issues/28) Тести ЛР3 і сумісність звіту (`feature`) | `FormatTotals`, нові тести, `CompatibilityTest` | 158 тестів, CI | TODO |
-| [#29](https://github.com/dontuo/kzp_lab/issues/29) Версія 3.0.0 і виключення SpotBugs (`infra`) | `pom.xml`, `spotbugs-exclude.xml` | `verify`, `--version` | TODO |
-| [#30](https://github.com/dontuo/kzp_lab/issues/30) Документація ЛР3 (`docs`) | README, REPORT, javadoc, `docs/reports/lab02.md` | javadoc без попереджень | TODO |
+| [#24](https://github.com/dontuo/kzp_lab/issues/24) Базовий тип Book (`feature`) | `abstract sealed`, спільні поля й інваріанти, рік і жанр | `BookHierarchyTest`, `BookTest` | [#31](https://github.com/dontuo/kzp_lab/pull/31) |
+| [#25](https://github.com/dontuo/kzp_lab/issues/25) Підтипи PrintedBook і ElectronicBook (`feature`) | `purchaseCost()`, `getFormat()` | `BookHierarchyTest` | [#31](https://github.com/dontuo/kzp_lab/pull/31) |
+| [#26](https://github.com/dontuo/kzp_lab/issues/26) enum BookFormat і повний формат CSV (`feature`) | `BookFormat`, 7 полів у CSV, блок звіту, `data/books.csv` | `BookFormatTest`, `BookHierarchyTest`, `MainTest` | [#31](https://github.com/dontuo/kzp_lab/pull/31) |
+| [#27](https://github.com/dontuo/kzp_lab/issues/27) equals і hashCode (`feature`) | рівність за підтипом, назвою й автором | `BookEqualityTest` | [#31](https://github.com/dontuo/kzp_lab/pull/31) |
+| [#28](https://github.com/dontuo/kzp_lab/issues/28) Тести ЛР3 і сумісність звіту (`feature`) | `FormatTotals`, нові тести, `CompatibilityTest` | 158 тестів, CI | [#31](https://github.com/dontuo/kzp_lab/pull/31) |
+| [#29](https://github.com/dontuo/kzp_lab/issues/29) Версія 3.0.0 і виключення SpotBugs (`infra`) | `pom.xml`, `spotbugs-exclude.xml` | `verify`, `--version` | [#31](https://github.com/dontuo/kzp_lab/pull/31) |
+| [#30](https://github.com/dontuo/kzp_lab/issues/30) Документація ЛР3 (`docs`) | README, REPORT, javadoc, `docs/reports/lab02.md` | javadoc без попереджень | [#31](https://github.com/dontuo/kzp_lab/pull/31) |
+
+Усі зміни коду надійшли одним Pull Request [#31](https://github.com/dontuo/kzp_lab/pull/31); кожне `Closes #N` записано
+окремим рядком, тому GitHub автоматично закрив #24–#30. Посилання на CI додано
+окремим PR зі звітом.
+
+Перед PR [#31](https://github.com/dontuo/kzp_lab/pull/31) CI на `main` (запуск № 29) упав на Ubuntu ще до тестів:
+`wget: Failed to fetch …/apache-maven-3.9.11-bin.zip` – Maven Wrapper не
+завантажив Maven з Maven Central. На Windows і macOS той самий коміт пройшов,
+а повторний запуск (Re-run failed jobs) на Ubuntu теж завершився успішно, тому
+це мережевий збій раннера, а не дефект коду.
 
 ## 12. Порівняння поведінки
 
@@ -316,11 +335,31 @@ CI:
 
 - SpotBugs `CT_CONSTRUCTOR_THROW` після переходу `Book` на `sealed` – див. розділ 10.
 
-**Мій внесок:** TODO
+**Мій внесок:**
 
-**Редакційний процес:** TODO
+- передав методичні вказівки ЛР № 2–7, щоб спланувати зміни моделі на весь курс;
+- обрав повну схему CSV `title;author;pages;price;format;year;genre` уже в ЛР № 3
+  із запропонованих варіантів;
+- створив GitHub Issues #24–#30 з мітками `feature`, `infra`, `docs` і критеріями
+  готовності;
+- діагностував падіння CI № 29 на Ubuntu як мережевий збій і перезапустив його;
+- відкрив Pull Request #31 з `Closes #N` для кожного Issue, дочекався зеленого CI
+  на трьох ОС і виконав merge.
 
-**Відповідальність:** TODO
+**Редакційний процес:** ШІ використовувався в діалоговому режимі: я обирав
+між запропонованими варіантами (схема CSV), ставив запитання щодо Issues і опису
+Pull Request і вирішував, що прийняти. Кожну зміну перевірено локальним
+`./mvnw clean verify` (158 тестів, SpotBugs без дефектів), автоматичним
+порівнянням звіту з контрольним виводом `v1.0.0` з явним переліком відмінностей,
+ручним перерахунком показників на `data/books.csv` і зеленим CI на Ubuntu,
+Windows та macOS перед merge.
+
+**Відповідальність:** підтверджую, що наведені результати запуску, тестів і CI
+правдиві та отримані на поданому коді. Я розумію ієрархію `Book` → `PrintedBook`,
+`ElectronicBook`, роль `sealed` і `super(...)`, `enum BookFormat`, критерій
+рівності в `equals`/`hashCode`, поліморфний виклик `purchaseCost()` і причину
+виключення SpotBugs та можу пояснити їх на захисті. Відповідальність за поданий
+код і звіт несу я.
 
 ## 14. Відповіді на контрольні питання
 
