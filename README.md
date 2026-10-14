@@ -12,6 +12,7 @@
 | `v2.0.0` | № 2 | клас-сутність `Book`, record `PagePrice`, валідація в конструкторі |
 | `v3.0.0` | № 3 | ієрархія `Book` → `PrintedBook`, `ElectronicBook`, `enum BookFormat`, `equals`/`hashCode` |
 | `v4.0.0` | № 4 | запити Stream API (`BookQueries`), показники через потоки, блок запитів у звіті |
+| `v5.0.0` | № 5 | `Repository<T>`, `@CsvColumn`, рефлексивний CSV-експорт, парсер і round-trip |
 
 ## Показники
 
@@ -57,7 +58,9 @@ title;author;pages;price;format;year;genre            # повний форма�
 Приклади даних:
 
 - `data/input.csv` – формат ЛР № 1–2, контрольний файл для порівняння звітів;
-- `data/books.csv` – повний формат: друковані й електронні книги та хибні рядки.
+- `data/books.csv` – повний формат: друковані й електронні книги та хибні рядки;
+- `data/library.csv` – повний формат для прикладу експорту (назва з комою);
+- `data/library-export.csv` – результат `--export` для `data/library.csv`.
 
 ## Вимоги
 
@@ -72,18 +75,19 @@ title;author;pages;price;format;year;genre            # повний форма�
 
 У Windows замість `./mvnw` використовуйте `mvnw.cmd`. Команда `verify` компілює код,
 запускає тести, збирає jar і виконує статичний аналіз SpotBugs.
-Готовий файл: `target/book-catalog-4.0.0.jar`.
+Готовий файл: `target/book-catalog-5.0.0.jar`.
 
 ## Запуск
 
 ```text
-java -jar target/book-catalog-4.0.0.jar [--help] [--version] [--input <файл>] [--output <файл>]
+java -jar target/book-catalog-5.0.0.jar [--help] [--version] [--input <файл>] [--output <файл>] [--export <файл>]
 ```
 
 | Аргумент | Призначення | За замовчуванням |
 |---|---|---|
 | `--input <файл>` | вхідний CSV-файл | `data/input.csv` |
 | `--output <файл>` | файл звіту | `out/report.txt` |
+| `--export <файл>` | експорт книг із роком і жанром у CSV та перевірка round-trip | без експорту |
 | `--help` | довідка | |
 | `--version` | версія програми та номер CI-збірки | |
 
@@ -95,7 +99,7 @@ java -jar target/book-catalog-4.0.0.jar [--help] [--version] [--input <файл>
 ## Приклад
 
 ```text
-$ java -jar target/book-catalog-4.0.0.jar
+$ java -jar target/book-catalog-5.0.0.jar
 Звіт: каталог книжок
 Вхідний файл: data/input.csv
 
@@ -164,6 +168,33 @@ BookFormat (enum): PRINTED «друкована», ELECTRONIC «електрон
 Показники каталогу (`CatalogSummary`) теж обчислюються потоками: `reduce` для сум,
 `max` для найдорожчої книги, `toMap` в `EnumMap` для підсумків за форматом.
 
+## Експорт у CSV
+
+```text
+java -jar target/book-catalog-5.0.0.jar --input data/library.csv --export data/library-export.csv
+...
+Експортовано записів: 6 у файл data/library-export.csv (без року чи жанру пропущено: 1)
+Round-trip: відновлено 6 з 6 записів без змін
+```
+
+Експортуються книги з відомими роком і жанром як записи `BookRecord`
+(поля варіанта: назва, автор, рік, сторінки, жанр). Файл має кодування UTF-8,
+роздільник – кома, перший рядок – заголовок:
+
+```text
+автор,жанр,сторінки,назва,рік
+Тарас Шевченко,поезія,320,Кобзар,1840
+Панас Мирний,роман,400,"Хіба ревуть воли, як ясла повні?",1880
+```
+
+- Назви стовпців задає анотація `@CsvColumn` над полями, порядок – сортування
+  Java-імен полів (`author`, `genre`, `pages`, `title`, `year`).
+- Поле з комою, лапкою або перенесенням рядка береться в лапки, лапка подвоюється.
+- `CsvExporter<T>` не знає класу `BookRecord`: він працює з будь-яким класом з
+  анотованими полями. `JsonExporter<T>` записує ті самі поля у JSON.
+- Після запису файл читається назад (`CsvParser` + `BookRecord.readCsv`) і
+  порівнюється з експортованими записами.
+
 ## Структура
 
 ```text
@@ -178,6 +209,15 @@ src/main/java/ua/lpnu/kzp/
 ├── BookParser.java       розкладка полів CSV; перевірка рядка без створення об'єкта
 ├── CatalogSummary.java   незмінні показники каталогу, обчислені потоками
 ├── BookQueries.java      запити Stream API та пошук через Optional
+├── Repository.java       типобезпечне сховище Repository<T>
+├── BookRecord.java       плоский запис варіанта для CSV, readCsv
+├── CsvColumn.java        анотація назви CSV-стовпця
+├── AnnotatedFields.java  пошук анотованих полів рефлексією, кеш
+├── Exporter.java         спільний інтерфейс експорту, запис у файл
+├── CsvExporter.java      універсальний рефлексивний експорт у CSV
+├── JsonExporter.java     експорт тих самих полів у JSON
+├── CsvParser.java        документний CSV-парсер (лапки, багаторядкові поля)
+├── DataStorageException.java  виняток збереження з першопричиною
 ├── ReportFormatter.java  формування тексту звіту
 └── FileReport.java       читання та запис файлів у UTF-8
 src/main/resources/version.properties   назва, версія та номер збірки для --version

@@ -50,6 +50,7 @@ public final class Main {
     static int run(String[] args) {
         Path input = Path.of("data", "input.csv");   // значення за замовчуванням
         Path output = Path.of("out", "report.txt");  // значення за замовчуванням
+        Path export = null;                          // експорт лише на запит
         boolean help = false;
         boolean version = false;
 
@@ -57,7 +58,7 @@ public final class Main {
             switch (args[i]) {
                 case "--help" -> help = true;
                 case "--version" -> version = true;
-                case "--input", "--output" -> {
+                case "--input", "--output", "--export" -> {
                     String option = args[i];
                     // Значення має бути наступним аргументом і не може бути іншою опцією.
                     if (i + 1 >= args.length || args[i + 1].startsWith("--")) {
@@ -67,10 +68,10 @@ public final class Main {
                     }
                     // ++i: забираємо значення і пропускаємо його в наступній ітерації.
                     Path value = Path.of(args[++i]);
-                    if (option.equals("--input")) {
-                        input = value;
-                    } else {
-                        output = value;
+                    switch (option) {
+                        case "--input" -> input = value;
+                        case "--output" -> output = value;
+                        default -> export = value;
                     }
                 }
                 default -> {
@@ -97,7 +98,7 @@ public final class Main {
         }
 
         try {
-            return process(input, output);
+            return process(input, output, export);
         } catch (IOException exception) {
             System.err.printf("Помилка роботи з файлом: %s%n", exception.getMessage());
             return EXIT_ERROR;
@@ -111,25 +112,31 @@ public final class Main {
      * Хибний рядок не зупиняє обробку й не потрапляє до списку книг, а додається до
      * списку пропущених з номером і причиною.
      *
+     * <p>Коректні книги зберігаються в {@link Repository}; показники й запити отримують
+     * його незмінний знімок.
+     *
      * @param input вхідний CSV-файл
      * @param output файл звіту
+     * @param export файл для CSV-експорту або {@code null}, якщо експорт не потрібен
      * @return {@link #EXIT_OK} або {@link #EXIT_ERROR}, якщо немає жодного коректного запису
+     *     чи експорт не вдався
      * @throws IOException якщо файл неможливо прочитати або записати
      */
-    static int process(Path input, Path output) throws IOException {
+    static int process(Path input, Path output, Path export) throws IOException {
         List<String> lines = FileReport.readLines(input);
-        List<Book> books = new ArrayList<>();
+        Repository<Book> repository = new Repository<>();
         List<String> errors = new ArrayList<>();
 
         for (int index = 0; index < lines.size(); index++) {
             try {
-                books.add(Book.fromCsv(lines.get(index)));
+                repository.add(Book.fromCsv(lines.get(index)));
             } catch (IllegalArgumentException exception) {
                 // Номер рядка відомий лише тут, у циклі читання, тому додаємо його до причини.
                 // Номер рахуємо з 1, як у текстовому редакторі.
                 errors.add(String.format(Locale.ROOT, "Рядок %d: %s", index + 1, exception.getMessage()));
             }
         }
+        List<Book> books = repository.all();
         CatalogSummary summary = CatalogSummary.of(books);
 
         // Один текст звіту для обох приймачів, щоб консоль і файл не розходилися.
@@ -142,12 +149,44 @@ public final class Main {
             System.err.printf("У файлі %s немає жодного коректного запису%n", input);
             return EXIT_ERROR;
         }
-        return EXIT_OK;
+        return export == null ? EXIT_OK : export(repository, export);
+    }
+
+    /**
+     * Експортує книги з роком і жанром у CSV, читає файл назад і порівнює записи.
+     *
+     * @param repository сховище коректних книг
+     * @param export файл для CSV-експорту
+     * @return {@link #EXIT_OK}, якщо відновлені записи дорівнюють експортованим, інакше {@link #EXIT_ERROR}
+     */
+    static int export(Repository<Book> repository, Path export) {
+        List<BookRecord> records = repository.find(BookRecord::isExportable).stream()
+                .map(BookRecord::from)
+                .toList();
+        try {
+            new CsvExporter<>(BookRecord.class).write(export, records);
+            List<BookRecord> restored = BookRecord.readCsv(export);
+            System.out.printf("Експортовано записів: %d у файл %s (без року чи жанру пропущено: %d)%n",
+                    records.size(), export, repository.size() - records.size());
+            if (!restored.equals(records)) {
+                System.err.printf("Round-trip: відновлені записи відрізняються від експортованих%n");
+                return EXIT_ERROR;
+            }
+            System.out.printf("Round-trip: відновлено %d з %d записів без змін%n", restored.size(), records.size());
+            return EXIT_OK;
+        } catch (DataStorageException exception) {
+            // Повідомлення описує операцію, cause – першопричину; обидва показуються користувачу.
+            System.err.printf("Помилка експорту: %s%n", exception.getMessage());
+            if (exception.getCause() != null) {
+                System.err.printf("Причина: %s%n", exception.getCause());
+            }
+            return EXIT_ERROR;
+        }
     }
 
     /* Виводить довідку про аргументи командного рядка. */
     private static void printHelp() {
-        System.out.printf("Використання: java -jar book-catalog.jar [--help] [--version] [--input <файл>] [--output <файл>]%n");
+        System.out.printf("Використання: java -jar book-catalog.jar [--help] [--version] [--input <файл>] [--output <файл>] [--export <файл>]%n");
         System.out.printf("%n");
         System.out.printf("Читає каталог книжок, перевіряє записи й формує звіт.%n");
         System.out.printf("%n");
@@ -155,6 +194,7 @@ public final class Main {
         System.out.printf("  --version          показати версію програми та номер збірки%n");
         System.out.printf("  --input <файл>     вхідний CSV-файл (за замовчуванням data/input.csv)%n");
         System.out.printf("  --output <файл>    файл звіту (за замовчуванням out/report.txt)%n");
+        System.out.printf("  --export <файл>    експортувати книги з роком і жанром у CSV і перевірити round-trip%n");
     }
 
     /* Підказує, як отримати довідку після помилки в аргументах. */
