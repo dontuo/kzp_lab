@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class BookTest {
 
     @Test
     void constructorKeepsValidValues() {
-        Book book = new Book("Кобзар", "Тарас Шевченко", 320, 250.0);
+        Book book = new PrintedBook("Кобзар", "Тарас Шевченко", 320, 250.0);
         assertEquals("Кобзар", book.getTitle());
         assertEquals("Тарас Шевченко", book.getAuthor());
         assertEquals(320, book.getPages());
@@ -31,26 +32,26 @@ class BookTest {
     @Test
     void boundaryValuesAreAccepted() {
         // Найменші допустимі значення: одна сторінка й безкоштовна книга.
-        Book book = new Book("І", "Я", 1, 0.0);
+        Book book = new PrintedBook("І", "Я", 1, 0.0);
         assertEquals(1, book.getPages());
         assertEquals(0.0, book.getPrice(), DELTA);
     }
 
     @Test
     void nullTitleIsRejected() {
-        assertThrows(NullPointerException.class, () -> new Book(null, "Автор", 10, 1.0));
+        assertThrows(NullPointerException.class, () -> new PrintedBook(null, "Автор", 10, 1.0));
     }
 
     @Test
     void nullAuthorIsRejected() {
-        assertThrows(NullPointerException.class, () -> new Book("Назва", null, 10, 1.0));
+        assertThrows(NullPointerException.class, () -> new PrintedBook("Назва", null, 10, 1.0));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"", "   ", "\t"})
     void blankTitleIsRejected(String title) {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> new Book(title, "Автор", 10, 1.0));
+                () -> new PrintedBook(title, "Автор", 10, 1.0));
         assertEquals("порожня назва книги", error.getMessage());
     }
 
@@ -58,20 +59,20 @@ class BookTest {
     @ValueSource(strings = {"", "   "})
     void blankAuthorIsRejected(String author) {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> new Book("Назва", author, 10, 1.0));
+                () -> new PrintedBook("Назва", author, 10, 1.0));
         assertEquals("порожній автор", error.getMessage());
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1, Integer.MIN_VALUE})
     void nonPositivePagesAreRejected(int pages) {
-        assertThrows(IllegalArgumentException.class, () -> new Book("Назва", "Автор", pages, 1.0));
+        assertThrows(IllegalArgumentException.class, () -> new PrintedBook("Назва", "Автор", pages, 1.0));
     }
 
     @Test
     void negativePriceIsRejected() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> new Book("Енеїда", "Іван Котляревський", 304, -99.0));
+                () -> new PrintedBook("Енеїда", "Іван Котляревський", 304, -99.0));
         assertEquals("від'ємна ціна: -99.00", error.getMessage());
     }
 
@@ -79,19 +80,28 @@ class BookTest {
     @ValueSource(doubles = {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY})
     void nonFinitePriceIsRejected(double price) {
         // NaN окремо важливий: NaN < 0 дає false, тому без isFinite він пройшов би.
-        assertThrows(IllegalArgumentException.class, () -> new Book("Назва", "Автор", 10, price));
+        assertThrows(IllegalArgumentException.class, () -> new PrintedBook("Назва", "Автор", 10, price));
     }
 
     /* --- Незмінність --- */
 
     @Test
     void allFieldsArePrivateFinal() {
-        for (Field field : Book.class.getDeclaredFields()) {
-            int modifiers = field.getModifiers();
-            assertTrue(Modifier.isPrivate(modifiers), field.getName());
-            assertTrue(Modifier.isFinal(modifiers), field.getName());
+        for (Class<?> type : List.of(Book.class, PrintedBook.class, ElectronicBook.class)) {
+            for (Field field : type.getDeclaredFields()) {
+                int modifiers = field.getModifiers();
+                // Публічні static final константи (FIRST_PRINTED_YEAR, DELIVERY_COST) не є станом об'єкта.
+                if (Modifier.isStatic(modifiers)) {
+                    continue;
+                }
+                assertTrue(Modifier.isPrivate(modifiers), field.getName());
+                assertTrue(Modifier.isFinal(modifiers), field.getName());
+            }
         }
-        assertTrue(Modifier.isFinal(Book.class.getModifiers()), "клас не можна розширити й змінити поведінку");
+        // Book тепер sealed: підтипи лише перелічені, і кожен final – змінити поведінку ззовні не можна.
+        assertTrue(Book.class.isSealed());
+        assertTrue(Modifier.isFinal(PrintedBook.class.getModifiers()));
+        assertTrue(Modifier.isFinal(ElectronicBook.class.getModifiers()));
     }
 
     @Test
@@ -128,7 +138,7 @@ class BookTest {
     void fromCsvRejectsWrongFieldCount() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> Book.fromCsv("Сад Гетсиманський;Іван Багряний;400"));
-        assertEquals("очікується 4 поля, отримано 3", error.getMessage());
+        assertEquals("очікується 4 або 7 полів, отримано 3", error.getMessage());
     }
 
     @Test
@@ -160,8 +170,8 @@ class BookTest {
         Locale original = Locale.getDefault();
         Locale.setDefault(Locale.forLanguageTag("uk-UA"));
         try {
-            assertEquals("Лісова пісня (Леся Українка): 180 с., 145.50 грн",
-                    new Book("Лісова пісня", "Леся Українка", 180, 145.5).toString());
+            assertEquals("Лісова пісня (Леся Українка): 180 с., 145.50 грн, друкована",
+                    new PrintedBook("Лісова пісня", "Леся Українка", 180, 145.5).toString());
         } finally {
             Locale.setDefault(original);
         }
@@ -169,7 +179,7 @@ class BookTest {
 
     @Test
     void pagePriceDescribesOneBook() {
-        assertEquals(new PagePrice(320, 250.0), new Book("Кобзар", "Тарас Шевченко", 320, 250.0).pagePrice());
+        assertEquals(new PagePrice(320, 250.0), new PrintedBook("Кобзар", "Тарас Шевченко", 320, 250.0).pagePrice());
     }
 
     /* --- Будівник --- */
@@ -177,7 +187,7 @@ class BookTest {
     @Test
     void builderCreatesSameBookAsConstructor() {
         Book built = Book.builder().title("Кобзар").author("Тарас Шевченко").pages(320).price(250.0).build();
-        assertEquals(new Book("Кобзар", "Тарас Шевченко", 320, 250.0).toString(), built.toString());
+        assertEquals(new PrintedBook("Кобзар", "Тарас Шевченко", 320, 250.0).toString(), built.toString());
     }
 
     @Test

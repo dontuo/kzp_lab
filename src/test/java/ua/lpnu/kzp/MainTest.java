@@ -59,7 +59,7 @@ class MainTest {
     void versionPrintsProjectVersion() {
         Result result = run("--version");
         assertEquals(Main.EXIT_OK, result.code());
-        assertTrue(result.out().contains("2.0.0"), result.out());
+        assertTrue(result.out().contains("3.0.0"), result.out());
     }
 
     @Test
@@ -79,6 +79,23 @@ class MainTest {
         assertTrue(report.contains("860.39 грн"), report);
         assertTrue(report.contains("Пропущено рядків: 19"), report);
         assertTrue(report.contains("Рядок 4: порожній рядок"), report);
+    }
+
+    @Test
+    void fullFormatSampleShowsTotalsByFormat() throws IOException {
+        Path output = tempDir.resolve("books-report.txt");
+        Result result = run("--input", "data/books.csv", "--output", output.toString());
+
+        assertEquals(Main.EXIT_OK, result.code(), result.err());
+        String report = Files.readString(output, StandardCharsets.UTF_8);
+        assertTrue(report.contains(String.format(Locale.ROOT, "%-28s %s", "Коректних записів", "7")), report);
+        assertTrue(report.contains("364.00"), report);
+        assertTrue(report.contains("Амадока (350.00 грн)"), report);
+        assertTrue(report.contains("1319.50 грн"), report);
+        assertTrue(report.contains(String.format(Locale.ROOT, "%-28s %-6s %s", "друкована", "4", "950.50 грн")), report);
+        assertTrue(report.contains(String.format(Locale.ROOT, "%-28s %-6s %s", "електронна", "3", "569.00 грн")), report);
+        assertTrue(report.contains("Пропущено рядків: 5"), report);
+        assertTrue(report.contains("Рядок 8: невідомий формат книги: \"AUDIO\""), report);
     }
 
     @Test
