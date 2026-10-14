@@ -107,8 +107,9 @@ public final class Main {
     /**
      * Читає записи, обчислює показники, виводить звіт у консоль і записує його у файл.
      *
-     * <p>Порядок для кожного рядка: прочитати → перевірити → включити в обчислення.
-     * Хибний рядок не зупиняє обробку, а потрапляє до списку пропущених з номером і причиною.
+     * <p>Кожен рядок перетворюється на {@link Book} через {@link Book#fromCsv(String)}.
+     * Хибний рядок не зупиняє обробку й не потрапляє до списку книг, а додається до
+     * списку пропущених з номером і причиною.
      *
      * @param input вхідний CSV-файл
      * @param output файл звіту
@@ -117,19 +118,19 @@ public final class Main {
      */
     static int process(Path input, Path output) throws IOException {
         List<String> lines = FileReport.readLines(input);
-        CatalogSummary summary = new CatalogSummary();
+        List<Book> books = new ArrayList<>();
         List<String> errors = new ArrayList<>();
 
         for (int index = 0; index < lines.size(); index++) {
-            String line = lines.get(index);
-            String error = BookParser.validate(line);
-            if (error != null) {
-                // Номер рядка рахуємо з 1, як у текстовому редакторі.
-                errors.add(String.format(Locale.ROOT, "Рядок %d: %s", index + 1, error));
-                continue;
+            try {
+                books.add(Book.fromCsv(lines.get(index)));
+            } catch (IllegalArgumentException exception) {
+                // Номер рядка відомий лише тут, у циклі читання, тому додаємо його до причини.
+                // Номер рахуємо з 1, як у текстовому редакторі.
+                errors.add(String.format(Locale.ROOT, "Рядок %d: %s", index + 1, exception.getMessage()));
             }
-            summary.add(BookParser.split(line));
         }
+        CatalogSummary summary = CatalogSummary.of(books);
 
         // Один текст звіту для обох приймачів, щоб консоль і файл не розходилися.
         String report = ReportFormatter.format(input, summary, errors);
@@ -146,7 +147,7 @@ public final class Main {
 
     /* Виводить довідку про аргументи командного рядка. */
     private static void printHelp() {
-        System.out.printf("Використання: java -jar lab01.jar [--help] [--version] [--input <файл>] [--output <файл>]%n");
+        System.out.printf("Використання: java -jar book-catalog.jar [--help] [--version] [--input <файл>] [--output <файл>]%n");
         System.out.printf("%n");
         System.out.printf("Читає каталог книжок, перевіряє записи й формує звіт.%n");
         System.out.printf("%n");
@@ -164,21 +165,22 @@ public final class Main {
     /**
      * Формує рядок версії з файла {@code version.properties}, який Maven заповнює під час збірки.
      *
-     * @return версія та номер збірки, або {@code lab01 dev}, якщо файл недоступний
+     * @return назва, версія та номер збірки, або {@code book-catalog dev}, якщо файл недоступний
      */
     static String versionText() {
         InputStream in = Main.class.getResourceAsStream("/version.properties");
         if (in == null) {
-            return "lab01 dev";
+            return "book-catalog dev";
         }
         Properties properties = new Properties();
         // Закриття reader закриває і вкладений потік.
         try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
             properties.load(reader);
         } catch (IOException exception) {
-            return "lab01 dev";
+            return "book-catalog dev";
         }
-        return String.format("lab01 %s (build %s)",
+        return String.format("%s %s (build %s)",
+                properties.getProperty("name", "book-catalog"),
                 properties.getProperty("version", "dev"),
                 properties.getProperty("build", "local"));
     }

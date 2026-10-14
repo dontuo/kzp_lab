@@ -11,7 +11,7 @@ body:
       description: Команда запуску та вхідні дані, на яких проявляється дефект.
       placeholder: |
         1. Додати в data/input.csv рядок ...
-        2. Виконати java -jar target/lab01-1.0.0.jar
+        2. Виконати java -jar target/book-catalog-2.0.0.jar
     validations:
       required: true
   - type: textarea

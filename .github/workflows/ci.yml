@@ -47,13 +47,13 @@ jobs:
       # Перевіряємо, що зібраний jar справді запускається на цій ОС.
       - name: Run JAR
         shell: bash
-        run: java -jar target/lab01-*.jar
+        run: java -jar target/book-catalog-*.jar
 
       # Кожна ОС отримує власний артефакт, щоб результати не перезаписувалися.
-      # Шаблон lab01-*.jar не захоплює original-lab01-*.jar без залежностей.
+      # Шаблон book-catalog-*.jar не захоплює original-book-catalog-*.jar без залежностей.
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
-          name: lab01-${{ matrix.os }}-build-${{ github.run_number }}
-          path: target/lab01-*.jar
+          name: book-catalog-${{ matrix.os }}-build-${{ github.run_number }}
+          path: target/book-catalog-*.jar
           if-no-files-found: error
