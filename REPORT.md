@@ -182,16 +182,35 @@ Maven, Wrapper, SpotBugs, CI, шаблони перенесено без змі�
 
 CI:
 
-- успішний запуск: TODO: посилання на GitHub Actions
-- артефакти jar: TODO: посилання на артефакти `book-catalog-<os>-build-N`
-- результати на трьох ОС: TODO: ubuntu-latest / windows-latest / macos-latest
+- успішний запуск CI № 37 (коміт `04d13b3`): https://github.com/dontuo/kzp_lab/actions/runs/38607690304
+- артефакти jar:
+  - [book-catalog-ubuntu-latest-build-37](https://github.com/dontuo/kzp_lab/actions/runs/38607690304/artifacts/11915783747)
+  - [book-catalog-windows-latest-build-37](https://github.com/dontuo/kzp_lab/actions/runs/38607690304/artifacts/11916956508)
+  - [book-catalog-macos-latest-build-37](https://github.com/dontuo/kzp_lab/actions/runs/38607690304/artifacts/11917020995)
+- результати на трьох ОС (194 тести, зокрема `StreamEquivalenceTest` і `CompatibilityTest`, SpotBugs, пакування, запуск jar):
+
+  | ОС | Результат |
+  |---|---|
+  | ubuntu-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38607690304/job/116002681741) |
+  | windows-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38607690304/job/116002680902) |
+  | macos-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38607690304/job/116002681437) |
 - Git-тег: `v4.0.0`
 
 ## 12. GitHub Issues і Pull Request
 
 | GitHub Issue | Зміна | Перевірка | Pull Request |
 |---|---|---|---|
-| TODO | | | |
+| [#33](https://github.com/dontuo/kzp_lab/issues/33) Запити filter і map (`feature`) | `publishedSince`, `titles` | `BookQueriesTest` | [#40](https://github.com/dontuo/kzp_lab/pull/40) |
+| [#34](https://github.com/dontuo/kzp_lab/issues/34) Групування і статистика (`feature`) | `countByGenre`, `pageStatistics`, ⭐ `countByFormatAndGenre` | `BookQueriesTest` | [#40](https://github.com/dontuo/kzp_lab/pull/40) |
+| [#35](https://github.com/dontuo/kzp_lab/issues/35) Top-N зі складеним компаратором (`feature`) | `BY_PAGES_DESC_THEN_TITLE`, `topByPages` | `BookQueriesTest` | [#40](https://github.com/dontuo/kzp_lab/pull/40) |
+| [#36](https://github.com/dontuo/kzp_lab/issues/36) Пошук через Optional (`feature`) | `findByTitle` | `BookQueriesTest` | [#40](https://github.com/dontuo/kzp_lab/pull/40) |
+| [#37](https://github.com/dontuo/kzp_lab/issues/37) Показники через потоки й еквівалентність з циклами (`feature`) | `CatalogSummary`, `ReportFormatter`, блок запитів, `LoopReference` | `StreamEquivalenceTest`, `CompatibilityTest` | [#40](https://github.com/dontuo/kzp_lab/pull/40) |
+| [#38](https://github.com/dontuo/kzp_lab/issues/38) Версія 4.0.0 і перевірка CI (`infra`) | `pom.xml` | CI № 37, № 38 на трьох ОС | [#40](https://github.com/dontuo/kzp_lab/pull/40) |
+| [#39](https://github.com/dontuo/kzp_lab/issues/39) Документація ЛР4 (`docs`) | README, REPORT, javadoc, `docs/reports/lab03.md` | javadoc без попереджень | [#40](https://github.com/dontuo/kzp_lab/pull/40) + окремий PR зі звітом |
+
+Усі зміни коду надійшли одним Pull Request [#40](https://github.com/dontuo/kzp_lab/pull/40). В описі PR, як вимагають
+методичні вказівки, наведено таблицю циклів, замінених потоками; кожне
+`Closes #N` записано окремим рядком, тому GitHub автоматично закрив #33–#39.
 
 ## 13. Порівняння реалізацій
 
@@ -245,11 +264,27 @@ CI:
 - відхилено: переписати на потік цикл читання рядків у `Main` – він потребує
   номера рядка й `try`/`catch` для кожного рядка.
 
-**Мій внесок:** TODO
+**Мій внесок:**
 
-**Редакційний процес:** TODO
+- створив GitHub Issues #33–#39 для запитів, `Optional`, показників, CI й
+  документації з мітками `feature`, `infra`, `docs` і критеріями готовності;
+- відкрив Pull Request #40 з таблицею «які цикли замінено потоками» та
+  `Closes #N` для кожного Issue, дочекався зеленого CI на трьох ОС і виконав merge;
+- перевірив результати запитів на `data/books.csv` у звіті програми.
 
-**Відповідальність:** TODO
+**Редакційний процес:** ШІ використовувався в діалоговому режимі: я ставив
+запитання щодо Issues і опису Pull Request і вирішував, що прийняти. Кожну зміну
+перевірено локальним `./mvnw clean verify` (194 тести, SpotBugs без дефектів),
+порівнянням потокових реалізацій із цикловими на чотирьох наборах даних,
+порівнянням звітів із контрольними виводами `v1.0.0` і `v3.0.0` та зеленим CI на
+Ubuntu, Windows і macOS перед merge.
+
+**Відповідальність:** підтверджую, що наведені результати запуску, тестів і CI
+правдиві та отримані на поданому коді. Я розумію кожну проміжну й кінцеву операцію
+в конвеєрах `BookQueries` і `CatalogSummary`, роль `reversed()` перед
+`thenComparing`, порядок `sorted()` → `limit()`, поведінку статистики на порожньому
+вході та `Optional` у пошуку й можу пояснити їх на захисті. Відповідальність за
+поданий код і звіт несу я.
 
 ## 15. Відповіді на контрольні питання
 
