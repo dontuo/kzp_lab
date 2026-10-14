@@ -5,10 +5,10 @@
                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Координати артефакта: ua.lpnu.kzp:lab01:1.0.0 -->
+    <!-- Координати артефакта: ua.lpnu.kzp:book-catalog:2.0.0; версія відповідає номеру лабораторної роботи. -->
     <groupId>ua.lpnu.kzp</groupId>
-    <artifactId>lab01</artifactId>
-    <version>1.0.0</version>
+    <artifactId>book-catalog</artifactId>
+    <version>2.0.0</version>
     <packaging>jar</packaging>
 
     <properties>

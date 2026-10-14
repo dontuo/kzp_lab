@@ -3,6 +3,8 @@ package ua.lpnu.kzp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 class CatalogSummaryTest {
@@ -13,7 +15,7 @@ class CatalogSummaryTest {
     private static CatalogSummary summaryOf(String... lines) {
         CatalogSummary summary = new CatalogSummary();
         for (String line : lines) {
-            summary.add(BookParser.split(line));
+            summary.add(Book.fromCsv(line));
         }
         return summary;
     }
@@ -61,6 +63,23 @@ class CatalogSummaryTest {
     void firstBookWinsOnEqualPrice() {
         CatalogSummary summary = summaryOf("Перша;Автор;10;50.00", "Друга;Автор;10;50.00");
         assertEquals("Перша", summary.getMostExpensiveTitle());
+    }
+
+    @Test
+    void ofComputesSameAsAddingOneByOne() {
+        List<Book> books = List.of(
+                new Book("Кобзар", "Тарас Шевченко", 320, 250.0),
+                new Book("Лісова пісня", "Леся Українка", 180, 145.5));
+        CatalogSummary summary = CatalogSummary.of(books);
+
+        assertEquals(2, summary.getCount());
+        assertEquals(new PagePrice(500, 395.5), summary.getTotals());
+        assertEquals("Кобзар", summary.getMostExpensiveTitle());
+    }
+
+    @Test
+    void emptyCatalogTotalsAreZero() {
+        assertEquals(PagePrice.ZERO, CatalogSummary.of(List.of()).getTotals());
     }
 
     @Test

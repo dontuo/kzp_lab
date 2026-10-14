@@ -1,34 +1,42 @@
 package ua.lpnu.kzp;
 
+import java.util.List;
+
 /**
  * Накопичує чотири показники каталогу: кількість книг, середню кількість
  * сторінок, найдорожчу книгу та сумарну вартість.
  */
 public final class CatalogSummary {
     private int count;
-    // long, щоб сума сторінок не переповнилася на великому каталозі.
-    private long totalPages;
-    private double totalPrice;
-    private String mostExpensiveTitle;
-    private double maxPrice;
+    // Сума сторінок і цін усіх книг; PagePrice незмінний, тому замінюється цілком.
+    private PagePrice totals = PagePrice.ZERO;
+    private Book mostExpensive;
+
+    /**
+     * Обчислює показники для списку книг.
+     *
+     * @param books коректні книги
+     * @return заповнений підсумок
+     */
+    public static CatalogSummary of(List<Book> books) {
+        CatalogSummary summary = new CatalogSummary();
+        for (Book book : books) {
+            summary.add(book);
+        }
+        return summary;
+    }
 
     /**
      * Додає до показників одну книгу.
      *
-     * @param fields поля рядка, який уже пройшов {@link BookParser#validate(String)}
+     * @param book книга; її коректність гарантує конструктор {@link Book}
      */
-    public void add(String[] fields) {
-        // Рядок уже перевірено, тому перетворення тут не кидає винятків.
-        int pages = Integer.parseInt(fields[BookParser.PAGES]);
-        double price = Double.parseDouble(fields[BookParser.PRICE]);
-
+    public void add(Book book) {
         count++;
-        totalPages += pages;
-        totalPrice += price;
+        totals = totals.plus(book.pagePrice());
         // Строге порівняння: за однакової ціни лишається перша книга.
-        if (mostExpensiveTitle == null || price > maxPrice) {
-            mostExpensiveTitle = fields[BookParser.TITLE];
-            maxPrice = price;
+        if (mostExpensive == null || book.getPrice() > mostExpensive.getPrice()) {
+            mostExpensive = book;
         }
     }
 
@@ -42,6 +50,15 @@ public final class CatalogSummary {
     }
 
     /**
+     * Повертає суму сторінок і цін усіх доданих книг.
+     *
+     * @return сумарне значення; {@link PagePrice#ZERO}, якщо книг немає
+     */
+    public PagePrice getTotals() {
+        return totals;
+    }
+
+    /**
      * Повертає середню кількість сторінок.
      *
      * @return середнє значення або 0, якщо книг немає
@@ -52,7 +69,7 @@ public final class CatalogSummary {
             return 0.0;
         }
         // Приведення до double не дає цілочисловому діленню відкинути дробову частину.
-        return (double) totalPages / count;
+        return (double) totals.pages() / count;
     }
 
     /**
@@ -61,7 +78,7 @@ public final class CatalogSummary {
      * @return назва або {@code null}, якщо книг немає
      */
     public String getMostExpensiveTitle() {
-        return mostExpensiveTitle;
+        return mostExpensive == null ? null : mostExpensive.getTitle();
     }
 
     /**
@@ -70,7 +87,7 @@ public final class CatalogSummary {
      * @return найбільша ціна або 0, якщо книг немає
      */
     public double getMaxPrice() {
-        return maxPrice;
+        return mostExpensive == null ? 0.0 : mostExpensive.getPrice();
     }
 
     /**
@@ -79,6 +96,6 @@ public final class CatalogSummary {
      * @return сума цін усіх книг
      */
     public double getTotalPrice() {
-        return totalPrice;
+        return totals.price();
     }
 }

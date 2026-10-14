@@ -9,7 +9,7 @@ Closes #
 
 ```text
 ./mvnw clean verify
-java -jar target/lab01-1.0.0.jar
+java -jar target/book-catalog-2.0.0.jar
 ```
 
 ## Перевірка
