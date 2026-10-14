@@ -68,8 +68,8 @@ class CatalogSummaryTest {
     @Test
     void ofComputesSameAsAddingOneByOne() {
         List<Book> books = List.of(
-                new Book("Кобзар", "Тарас Шевченко", 320, 250.0),
-                new Book("Лісова пісня", "Леся Українка", 180, 145.5));
+                new PrintedBook("Кобзар", "Тарас Шевченко", 320, 250.0),
+                new PrintedBook("Лісова пісня", "Леся Українка", 180, 145.5));
         CatalogSummary summary = CatalogSummary.of(books);
 
         assertEquals(2, summary.getCount());

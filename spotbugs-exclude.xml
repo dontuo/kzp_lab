@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Виключення SpotBugs. Кожне має бути вузьким (конкретні клас і правило) й обґрунтованим.
+-->
+<FindBugsFilter>
+  <!--
+    CT_CONSTRUCTOR_THROW: конструктор не-final класу кидає виняток, і зловмисний підклас
+    може отримати напівстворений об'єкт через finalize(). Для Book це неможливо:
+    клас sealed і дозволяє лише PrintedBook та ElectronicBook, обидва final, тому
+    сторонній підклас створити не можна. SpotBugs не враховує sealed, тому правило
+    вимкнено лише для Book. Виняток у конструкторі тут навмисний: так об'єкт
+    із порушеним інваріантом не створюється взагалі.
+  -->
+  <Match>
+    <Class name="ua.lpnu.kzp.Book"/>
+    <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+  </Match>
+</FindBugsFilter>

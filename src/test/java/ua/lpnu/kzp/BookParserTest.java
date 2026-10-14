@@ -41,12 +41,12 @@ class BookParserTest {
 
     @Test
     void tooFewFieldsAreRejected() {
-        assertEquals("очікується 4 поля, отримано 3", BookParser.validate("Сад Гетсиманський;Іван Багряний;400"));
+        assertEquals("очікується 4 або 7 полів, отримано 3", BookParser.validate("Сад Гетсиманський;Іван Багряний;400"));
     }
 
     @Test
     void tooManyFieldsAreRejected() {
-        assertEquals("очікується 4 поля, отримано 5",
+        assertEquals("очікується 4 або 7 полів, отримано 5",
                 BookParser.validate("Місто;Валер'ян Підмогильний;352;180.00;2026"));
     }
 

@@ -1,16 +1,31 @@
 package ua.lpnu.kzp;
 
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Накопичує чотири показники каталогу: кількість книг, середню кількість
- * сторінок, найдорожчу книгу та сумарну вартість.
+ * сторінок, найдорожчу книгу та сумарну вартість, а також підсумки за форматом видання.
+ *
+ * <p>Клас обробляє будь-які підтипи {@link Book} через спільний тип і не перевіряє,
+ * друкована книга чи електронна.
  */
 public final class CatalogSummary {
     private int count;
     // Сума сторінок і цін усіх книг; PagePrice незмінний, тому замінюється цілком.
     private PagePrice totals = PagePrice.ZERO;
     private Book mostExpensive;
+    // EnumMap зберігає ключі в порядку оголошення констант, тому звіт стабільний.
+    private final Map<BookFormat, FormatTotals> byFormat = new EnumMap<>(BookFormat.class);
+
+    /** Створює порожній підсумок із нульовими значеннями для кожного формату. */
+    public CatalogSummary() {
+        for (BookFormat format : BookFormat.values()) {
+            byFormat.put(format, FormatTotals.ZERO);
+        }
+    }
 
     /**
      * Обчислює показники для списку книг.
@@ -38,6 +53,17 @@ public final class CatalogSummary {
         if (mostExpensive == null || book.getPrice() > mostExpensive.getPrice()) {
             mostExpensive = book;
         }
+        // getFormat() і purchaseCost() усередині plus – поліморфні виклики, без if за підтипом.
+        byFormat.put(book.getFormat(), byFormat.get(book.getFormat()).plus(book));
+    }
+
+    /**
+     * Повертає підсумки для кожного формату видання в порядку оголошення {@link BookFormat}.
+     *
+     * @return незмінна копія; формати без книг мають {@link FormatTotals#ZERO}
+     */
+    public Map<BookFormat, FormatTotals> getByFormat() {
+        return Collections.unmodifiableMap(new EnumMap<>(byFormat));
     }
 
     /**

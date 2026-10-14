@@ -10,22 +10,60 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Перевіряє, що перебудова на класи не змінила зовнішню поведінку програми.
+ * Перевіряє, що перебудови не змінили зовнішню поведінку програми понад задокументоване.
  *
  * <p>Файл {@code lab01-report.txt} – контрольний звіт, отриманий версією 1.0.0
- * (тег {@code v1.0.0}) на тому самому {@code data/input.csv}.
+ * (тег {@code v1.0.0}) на тому самому {@code data/input.csv}. Версія 2.0.0 давала
+ * точно такий самий звіт.
  */
 class CompatibilityTest {
+    /*
+     * ЛР № 3 дозволила рядки з 7 полями, тому змінився текст помилки про кількість полів.
+     * Номери рядків і причини пропуску лишилися ті самі.
+     */
+    private static final Map<String, String> CHANGED_MESSAGES_LAB03 = Map.of(
+            "Рядок 7: очікується 4 поля, отримано 3", "Рядок 7: очікується 4 або 7 полів, отримано 3",
+            "Рядок 8: очікується 4 поля, отримано 5", "Рядок 8: очікується 4 або 7 полів, отримано 5");
+
+    /* Блок форматів, доданий у ЛР № 3 після таблиці показників ЛР № 1. */
+    private static final List<String> FORMAT_BLOCK_LAB03 = List.of(
+            "",
+            "Формат видання               Книг   Вартість придбання",
+            "друкована                    6      1160.39 грн",
+            "електронна                   0      0.00 грн");
+
     @TempDir
     Path tempDir;
 
     @Test
-    void reportIsIdenticalToLab01() throws IOException {
+    void reportDiffersFromLab01OnlyAsDocumented() throws IOException {
+        List<String> actual = runReport().lines().toList();
+        List<String> expected = expectedLab01Report().lines()
+                .map(line -> {
+                    // Рядки помилок у звіті мають відступ у два пробіли.
+                    String changed = CHANGED_MESSAGES_LAB03.get(line.strip());
+                    return changed == null ? line : "  " + changed;
+                })
+                .toList();
+
+        // Таблиця ЛР № 1 закінчується рядком сумарної вартості; блок форматів іде одразу після неї.
+        int tableEnd = expected.indexOf("Сумарна вартість каталогу    860.39 грн") + 1;
+        assertEquals(expected.subList(0, tableEnd), actual.subList(0, tableEnd), "таблиця показників ЛР № 1");
+        assertEquals(FORMAT_BLOCK_LAB03, actual.subList(tableEnd, tableEnd + FORMAT_BLOCK_LAB03.size()),
+                "блок форматів ЛР № 3");
+        assertEquals(expected.subList(tableEnd, expected.size()),
+                actual.subList(tableEnd + FORMAT_BLOCK_LAB03.size(), actual.size()), "пропущені рядки");
+    }
+
+    /* Запускає програму на data/input.csv і повертає звіт у вигляді Linux. */
+    private String runReport() throws IOException {
         Path output = tempDir.resolve("report.txt");
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
@@ -35,9 +73,8 @@ class CompatibilityTest {
         } finally {
             System.setOut(originalOut);
         }
-
         assertEquals(Main.EXIT_OK, code);
-        assertEquals(expectedLab01Report(), normalize(Files.readString(output, StandardCharsets.UTF_8)));
+        return normalize(Files.readString(output, StandardCharsets.UTF_8));
     }
 
     /* Читає контрольний звіт із ресурсів тестів. */

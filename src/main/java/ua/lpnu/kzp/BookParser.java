@@ -3,16 +3,23 @@ package ua.lpnu.kzp;
 /**
  * Описує розкладку рядка каталогу книжок і перевіряє рядок без створення об'єкта.
  *
- * <p>Формат рядка: {@code title;author;pages;price}, наприклад
- * {@code Кобзар;Тарас Шевченко;320;250.00}.
+ * <p>Підтримуються два формати рядка:
+ * <ul>
+ *   <li>{@code title;author;pages;price} – формат ЛР № 1–2, наприклад
+ *       {@code Кобзар;Тарас Шевченко;320;250.00};</li>
+ *   <li>{@code title;author;pages;price;format;year;genre} – повний формат, наприклад
+ *       {@code Кобзар;Тарас Шевченко;320;250.00;PRINTED;1840;поезія}.</li>
+ * </ul>
  *
  * <p>Правила перевірки зберігаються лише в {@link Book}: формат – у
  * {@link Book#fromCsv(String)}, інваріанти – у конструкторі. Цей клас лише описує
  * поля та повертає причину помилки у вигляді рядка, як у лабораторній роботі № 1.
  */
 public final class BookParser {
-    /** Кількість полів у коректному рядку. */
+    /** Кількість полів у рядку старого формату ЛР № 1–2. */
     public static final int FIELD_COUNT = 4;
+    /** Кількість полів у рядку повного формату. */
+    public static final int FULL_FIELD_COUNT = 7;
     /** Індекс поля з назвою книги. */
     public static final int TITLE = 0;
     /** Індекс поля з автором. */
@@ -21,6 +28,12 @@ public final class BookParser {
     public static final int PAGES = 2;
     /** Індекс поля з ціною. */
     public static final int PRICE = 3;
+    /** Індекс поля з форматом видання (лише повний формат). */
+    public static final int FORMAT = 4;
+    /** Індекс поля з роком видання (лише повний формат). */
+    public static final int YEAR = 5;
+    /** Індекс поля з жанром (лише повний формат). */
+    public static final int GENRE = 6;
 
     /* Роздільник полів у вхідному файлі. */
     private static final String SEPARATOR = ";";
