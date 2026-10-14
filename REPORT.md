@@ -257,16 +257,37 @@ Maven, Wrapper, SpotBugs, CI і шаблони перенесено без зм�
 
 CI:
 
-- успішний запуск: TODO: посилання на GitHub Actions
-- артефакти jar: TODO: посилання на артефакти `book-catalog-<os>-build-N`
-- результати на трьох ОС: TODO: ubuntu-latest / windows-latest / macos-latest
+- успішний запуск CI № 46 (коміт `1852102`): https://github.com/dontuo/kzp_lab/actions/runs/38611489648
+- артефакти jar:
+  - [book-catalog-ubuntu-latest-build-46](https://github.com/dontuo/kzp_lab/actions/runs/38611489648/artifacts/11917601444)
+  - [book-catalog-windows-latest-build-46](https://github.com/dontuo/kzp_lab/actions/runs/38611489648/artifacts/11917671356)
+  - [book-catalog-macos-latest-build-46](https://github.com/dontuo/kzp_lab/actions/runs/38611489648/artifacts/11918426287)
+- створений CSV: [`data/library-export.csv`](data/library-export.csv)
+- результати на трьох ОС (253 тести, зокрема `RoundTripTest` і `CsvExporterTest` з роздільником рядків кожної ОС, SpotBugs, пакування, запуск jar):
+
+  | ОС | Результат |
+  |---|---|
+  | ubuntu-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38611489648/job/116015701641) |
+  | windows-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38611489648/job/116015702473) |
+  | macos-latest | [success](https://github.com/dontuo/kzp_lab/actions/runs/38611489648/job/116015702007) |
 - Git-тег: `v5.0.0`
 
 ## 13. GitHub Issues і Pull Request
 
 | GitHub Issue | Зміна | Перевірка | Pull Request |
 |---|---|---|---|
-| TODO | | | |
+| [#42](https://github.com/dontuo/kzp_lab/issues/42) Repository<T> (`feature`) | `Repository<T>`, `Main` на `Repository<Book>` | `RepositoryTest` | [#50](https://github.com/dontuo/kzp_lab/pull/50) |
+| [#43](https://github.com/dontuo/kzp_lab/issues/43) Анотація @CsvColumn і BookRecord (`feature`) | `CsvColumn`, `BookRecord` | `BookRecordTest`, `CsvExporterTest` | [#50](https://github.com/dontuo/kzp_lab/pull/50) |
+| [#44](https://github.com/dontuo/kzp_lab/issues/44) Рефлексивний CSV-експортер (`feature`) | `AnnotatedFields`, `Exporter<T>`, `CsvExporter<T>` | `CsvExporterTest` | [#50](https://github.com/dontuo/kzp_lab/pull/50) |
+| [#45](https://github.com/dontuo/kzp_lab/issues/45) CSV-парсер і round-trip (`feature`) | `CsvParser`, `BookRecord.readCsv`, `--export`, `data/library.csv` | `CsvParserTest`, `RoundTripTest`, `MainTest` | [#50](https://github.com/dontuo/kzp_lab/pull/50) |
+| [#46](https://github.com/dontuo/kzp_lab/issues/46) Власний виняток і обробка помилок (`feature`) | `DataStorageException`, повідомлення з причиною в `Main` | `RoundTripTest`, `BookRecordTest`, `MainTest` | [#50](https://github.com/dontuo/kzp_lab/pull/50) |
+| [#47](https://github.com/dontuo/kzp_lab/issues/47) Тести ЛР5 (`feature`) | 59 нових тестів | 253 тести, CI | [#50](https://github.com/dontuo/kzp_lab/pull/50) |
+| [#48](https://github.com/dontuo/kzp_lab/issues/48) Версія 5.0.0, JSON-експорт і кеш полів | `pom.xml`, ⭐ `JsonExporter<T>`, кеш у `AnnotatedFields` | `JsonExporterTest`, вимірювання | [#50](https://github.com/dontuo/kzp_lab/pull/50) |
+| [#49](https://github.com/dontuo/kzp_lab/issues/49) Документація ЛР5 | README, REPORT, javadoc, `docs/reports/lab04.md` | javadoc без попереджень | [#50](https://github.com/dontuo/kzp_lab/pull/50) + окремий PR зі звітом |
+
+Усі зміни коду надійшли одним Pull Request [#50](https://github.com/dontuo/kzp_lab/pull/50) з прикладом CSV, результатом
+round-trip і таблицею помилок в описі; кожне `Closes #N` записано окремим рядком,
+тому GitHub автоматично закрив #42–#49.
 
 ## 14. Порівняння стану
 
@@ -324,11 +345,28 @@ CI:
 - SpotBugs `RV_RETURN_VALUE_OF_PUTIFABSENT_IGNORED`: результат `putIfAbsent` у кеші
   ігнорувався – тепер повертається значення, яке вже поклав інший потік.
 
-**Мій внесок:** TODO
+**Мій внесок:** код цієї роботи я створював разом із ШІ в діалоговому режимі:
+я формулював завдання для кожного кроку (сховище, анотація й експорт, парсер і
+round-trip, помилки), ШІ генерував реалізацію й тести, а я переглядав результат і
+вирішував, що прийняти. Також я:
 
-**Редакційний процес:** TODO
+- створив GitHub Issues #42–#49 для сховища, анотації, експортера, парсера, помилок,
+  тестів, інфраструктури й документації з критеріями готовності;
+- відкрив Pull Request #50 з прикладом CSV, результатом round-trip, таблицею помилок і
+  `Closes #N` для кожного Issue, дочекався зеленого CI на трьох ОС і виконав merge.
 
-**Відповідальність:** TODO
+**Редакційний процес:** кожну запропоновану ШІ зміну я переглядав перед
+прийняттям. Перевірка: локальний `./mvnw clean verify` (253 тести, SpotBugs без
+дефектів), запуск `--export` на `data/library.csv` з повідомленням про успішний
+round-trip, порівняння звітів із контрольними виводами попередніх робіт і зелений CI
+на Ubuntu, Windows і macOS перед merge.
+
+**Відповідальність:** підтверджую, що наведені результати запуску, тестів і CI
+правдиві та отримані на поданому коді. Я розумію параметр типу й `? super T` у
+`Repository`, роль `RUNTIME` і `FIELD` в `@CsvColumn`, як `AnnotatedFields` знаходить
+і читає поля, правила екранування, роботу машини станів у `CsvParser`, формування
+`cause` у `DataStorageException` і що доводить round-trip, та можу пояснити їх на
+захисті. Відповідальність за поданий код і звіт несу я.
 
 ## 16. Відповіді на контрольні питання
 
